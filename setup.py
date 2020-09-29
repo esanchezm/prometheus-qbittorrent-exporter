@@ -1,9 +1,14 @@
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='prometheus-qbittorrent-exporter',
     packages=['qbittorrent_exporter'],
     version='1.0.0',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     description='Prometheus exporter for qbittorrent',
     author='Esteban Sanchez',
     author_email='esteban.sanchez@gmail.com',
