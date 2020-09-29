@@ -5,7 +5,7 @@ RUN apk add --update --no-cache \
     python3
 
 # Install package
-RUN pip3 install prometheus-qbittorrent-exporter==1.0.1
+RUN pip3 install prometheus-qbittorrent-exporter==1.0.2
 
 ENV QBITTORRENT_HOST=""
 ENV QBITTORRENT_PORT=""
