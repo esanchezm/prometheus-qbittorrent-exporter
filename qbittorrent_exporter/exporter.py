@@ -77,8 +77,8 @@ class QbittorrentMetricsCollector():
 
         return [
             {
-                "name": "up",
-                "value": response is None,
+                "name": "qbittorrent_up",
+                "value": response is not None,
                 "labels": {"version": version},
                 "help": "Whether if server is alive or not",
             },
