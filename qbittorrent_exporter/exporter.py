@@ -1,6 +1,6 @@
-from httplib2 import Http
 import time
 import os
+import sys
 import signal
 import faulthandler
 from qbittorrentapi import Client, TorrentStates
@@ -185,6 +185,14 @@ def main():
     logger = logging.getLogger()
     logger.addHandler(logHandler)
     logger.setLevel(config["log_level"])
+
+    if not config["host"]:
+        logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
+        sys.exit(1)
+    if not config["post"]:
+        logger.error("No post specified, please set QBITTORRENT_PORT environment variable")
+        sys.exit(1)
+
 
     # Register our custom collector
     logger.info("Exporter is starting up")
