@@ -20,7 +20,7 @@ qbittorrent-exporter
 Another option is run it in a docker container.
 
 ```
-docker run esanchezm/prometheus-qbittorrent-exporter
+docker run -e QBITTORRENT_PORT=8080 -e QBITTORRENT_HOST=myserver.local -p 8000:8000 esanchezm/prometheus-qbittorrent-exporter
 ```
 
 The application reads configuration using environment variables:
