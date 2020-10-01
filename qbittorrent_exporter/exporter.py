@@ -116,9 +116,6 @@ class QbittorrentMetricsCollector():
             categories = self.client.torrent_categories.categories
         except Exception as e:
             logger.error(f"Couldn't fetch categories: {e}")
-            categories = None
-
-        if not categories:
             return []
 
         if not self.torrents:
