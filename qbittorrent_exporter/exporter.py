@@ -197,10 +197,6 @@ def main():
     logger.info("Exporter is starting up")
     REGISTRY.register(QbittorrentMetricsCollector(config))
 
-    logger.info(
-        f"Including uncategorized torrents: {config['include_uncategorized']}"
-    )
-
     # Start server
     start_http_server(config["exporter_port"])
     logger.info(
