@@ -3,6 +3,7 @@ import os
 import sys
 import signal
 import faulthandler
+from attrdict import AttrDict
 from qbittorrentapi import Client, TorrentStates
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
@@ -24,6 +25,7 @@ class QbittorrentMetricsCollector():
         "errored",
         "paused",
     ]
+    INCLUDE_UNCATEGORIZED = False
 
     def __init__(self, config):
         self.config = config
@@ -34,6 +36,7 @@ class QbittorrentMetricsCollector():
             username=config["username"],
             password=config["password"],
         )
+        self.INCLUDE_UNCATEGORIZED = config["include_uncategorized"] == 'true'
 
     def collect(self):
         try:
@@ -122,6 +125,8 @@ class QbittorrentMetricsCollector():
             return []
 
         metrics = []
+        if self.INCLUDE_UNCATEGORIZED:
+            categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
             category_torrents = [t for t in self.torrents if t['category'] == category]
 
@@ -166,7 +171,8 @@ def main():
         "username": os.environ.get("QBITTORRENT_USER", ""),
         "password": os.environ.get("QBITTORRENT_PASS", ""),
         "exporter_port": int(os.environ.get("EXPORTER_PORT", "8000")),
-        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO")
+        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO"),
+        "include_uncategorized": os.environ.get("QBITTORRENT_INCLUDE_UNCATEGORIZED", "false"),
     }
 
     # Register signal handler
@@ -194,6 +200,10 @@ def main():
     logger.info("Exporter is starting up")
     REGISTRY.register(QbittorrentMetricsCollector(config))
 
+    logger.info(
+        f"Including uncategorized torrents: {config['include_uncategorized']}"
+    )
+    
     # Start server
     start_http_server(config["exporter_port"])
     logger.info(

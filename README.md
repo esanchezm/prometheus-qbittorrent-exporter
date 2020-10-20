@@ -31,6 +31,7 @@ The application reads configuration using environment variables:
 | `QBITTORRENT_PORT`   |               | qbittorrent server port |
 | `QBITTORRENT_USER`   | `""`          | qbittorrent username |
 | `QBITTORRENT_PASS`   | `""`          | qbittorrent password |
+| `QBITTORRENT_INCLUDE_UNCATEGORIZED` | `"false"` | Include uncategorized torrents |
 | `EXPORTER_PORT`      | `8000`        | Exporter listening port |
 | `EXPORTER_LOG_LEVEL` | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 
