@@ -25,7 +25,6 @@ class QbittorrentMetricsCollector():
         "errored",
         "paused",
     ]
-    INCLUDE_UNCATEGORIZED = False
 
     def __init__(self, config):
         self.config = config
@@ -36,7 +35,6 @@ class QbittorrentMetricsCollector():
             username=config["username"],
             password=config["password"],
         )
-        self.INCLUDE_UNCATEGORIZED = config["include_uncategorized"] == 'true'
 
     def collect(self):
         try:
@@ -125,10 +123,9 @@ class QbittorrentMetricsCollector():
             return []
 
         metrics = []
-        if self.INCLUDE_UNCATEGORIZED:
-            categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
+        categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
-            category_torrents = [t for t in self.torrents if t['category'] == category or (self.INCLUDE_UNCATEGORIZED and category == "Uncategorized" and t['category'] == "")]
+            category_torrents = [t for t in self.torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
