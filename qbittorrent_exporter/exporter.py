@@ -128,7 +128,7 @@ class QbittorrentMetricsCollector():
         if self.INCLUDE_UNCATEGORIZED:
             categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
-            category_torrents = [t for t in self.torrents if t['category'] == category]
+category_torrents = [t for t in self.torrents if t['category'] == category or (self.INCLUDE_UNCATEGORIZED and category == "Uncategorized" and t['category'] == "")]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
@@ -203,7 +203,7 @@ def main():
     logger.info(
         f"Including uncategorized torrents: {config['include_uncategorized']}"
     )
-    
+
     # Start server
     start_http_server(config["exporter_port"])
     logger.info(
