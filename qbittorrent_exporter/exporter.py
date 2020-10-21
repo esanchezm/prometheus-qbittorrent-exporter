@@ -77,34 +77,34 @@ class QbittorrentMetricsCollector():
 
         return [
             {
-                "name": "qbittorrent_up",
+                "name": f"{self.config['metrics_prefix']}_up",
                 "value": response is not None,
                 "labels": {"version": version},
                 "help": "Whether if server is alive or not",
             },
             {
-                "name": "connected",
+                "name": f"{self.config['metrics_prefix']}_connected",
                 "value": response.get("connection_status", "") == "connected",
                 "help": "Whether if server is connected or not",
             },
             {
-                "name": "firewalled",
+                "name": f"{self.config['metrics_prefix']}_firewalled",
                 "value": response.get("connection_status", "") == "firewalled",
                 "help": "Whether if server is under a firewall or not",
             },
             {
-                "name": "dht_nodes",
+                "name": f"{self.config['metrics_prefix']}_dht_nodes",
                 "value": response.get("dht_nodes", 0),
                 "help": "DHT nodes connected to",
             },
             {
-                "name": "dl_info_data",
+                "name": f"{self.config['metrics_prefix']}_dl_info_data",
                 "value": response.get("dl_info_data", 0),
                 "help": "Data downloaded this session (bytes)",
                 "type": "counter"
             },
             {
-                "name": "up_info_data",
+                "name": f"{self.config['metrics_prefix']}_up_info_data",
                 "value": response.get("up_info_data", 0),
                 "help": "Data uploaded this session (bytes)",
                 "type": "counter"
@@ -131,7 +131,7 @@ class QbittorrentMetricsCollector():
                     t for t in category_torrents if getattr(TorrentStates, status_prop).fget(TorrentStates(t['state']))
                 ]
                 metrics.append({
-                    "name": "torrents_count",
+                    "name": f"{self.config['metrics_prefix']}_torrents_count",
                     "value": len(status_torrents),
                     "labels": {
                         "status": status,
@@ -166,7 +166,8 @@ def main():
         "username": os.environ.get("QBITTORRENT_USER", ""),
         "password": os.environ.get("QBITTORRENT_PASS", ""),
         "exporter_port": int(os.environ.get("EXPORTER_PORT", "8000")),
-        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO")
+        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO"),
+        "metrics_prefix": os.environ.get("METRICS_PREFIX", "qbittorrent"),
     }
 
     # Register signal handler
