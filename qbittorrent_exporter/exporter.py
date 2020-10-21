@@ -168,8 +168,7 @@ def main():
         "username": os.environ.get("QBITTORRENT_USER", ""),
         "password": os.environ.get("QBITTORRENT_PASS", ""),
         "exporter_port": int(os.environ.get("EXPORTER_PORT", "8000")),
-        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO"),
-        "include_uncategorized": os.environ.get("QBITTORRENT_INCLUDE_UNCATEGORIZED", "false"),
+        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO")
     }
 
     # Register signal handler
