@@ -3,6 +3,7 @@ import os
 import sys
 import signal
 import faulthandler
+from attrdict import AttrDict
 from qbittorrentapi import Client, TorrentStates
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
@@ -122,8 +123,9 @@ class QbittorrentMetricsCollector():
             return []
 
         metrics = []
+        categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
-            category_torrents = [t for t in self.torrents if t['category'] == category]
+            category_torrents = [t for t in self.torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
