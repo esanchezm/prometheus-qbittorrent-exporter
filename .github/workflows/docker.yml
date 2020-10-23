@@ -18,3 +18,5 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Build and push docker
         uses: docker/build-push-action@v2
+        with:
+          push: true  
