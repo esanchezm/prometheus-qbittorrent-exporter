@@ -19,6 +19,7 @@ jobs:
       - name: Extract branch name
         shell: bash
         run: |
+          echo $GITHUB_REF
           tag=${GITHUB_REF#refs/tags/}
           tag=${tag#refs/heads/}
           if echo $tag | grep -q -E "[0-9]+\.[0-9]+\.[0-9]+"; then
