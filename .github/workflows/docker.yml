@@ -15,10 +15,16 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      
+
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: |
+          tag=${GITHUB_REF#refs/tags/}
+          tag=${tag#refs/heads/}
+          if echo $tag | grep -q -E "[0-9]+\.[0-9]+\.[0-9]+"; then
+            tag="v$tag"
+          fi
+          echo "##[set-output name=tag;]$tag"
         id: extract_branch
 
       - name: Login to DockerHub
