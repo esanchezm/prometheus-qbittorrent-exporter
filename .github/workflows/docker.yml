@@ -19,7 +19,6 @@ jobs:
       - name: Extract branch name
         shell: bash
         run: |
-          echo $GITHUB_REF
           tag=${GITHUB_REF#refs/tags/}
           tag=${tag#refs/heads/}
           if echo $tag | grep -q -E "[0-9]+\.[0-9]+\.[0-9]+"; then
@@ -38,4 +37,4 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: esanchezm/prometheus-qbittorrent-exporter:latest,esanchezm/prometheus-qbittorrent-exporter:${{ steps.extract_branch.outputs.branch }}
+          tags: esanchezm/prometheus-qbittorrent-exporter:latest,esanchezm/prometheus-qbittorrent-exporter:${{ steps.extract_branch.outputs.tag }}
