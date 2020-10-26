@@ -64,7 +64,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1603732299454,
+  "iteration": 1603732792335,
   "links": [],
   "panels": [
     {
@@ -895,14 +895,14 @@
         "allValue": ".*",
         "current": {},
         "datasource": "${DS_PROMETHEUS}",
-        "definition": "label_values(torrents_count, category)",
+        "definition": "label_values(qbittorrent_torrents_count, category)",
         "hide": 0,
         "includeAll": true,
         "label": "Categories",
         "multi": true,
         "name": "categories",
         "options": [],
-        "query": "label_values(torrents_count, category)",
+        "query": "label_values(qbittorrent_torrents_count, category)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -923,5 +923,5 @@
   "timezone": "",
   "title": "Qbittorrent",
   "uid": "eKyTETFMk",
-  "version": 35
+  "version": 40
 }
