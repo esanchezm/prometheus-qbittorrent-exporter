@@ -51,6 +51,12 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 | `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes |
 | `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|
 
+## Screenshot
+
+![](./grafana/screenshot.png)
+
+[More info](./grafana/README.md)
+
 ## License
 
 This software is released under the [GPLv3 license](LICENSE).
