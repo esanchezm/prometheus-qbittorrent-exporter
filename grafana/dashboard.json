@@ -64,7 +64,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1603730958454,
+  "iteration": 1603732299454,
   "links": [],
   "panels": [
     {
@@ -669,13 +669,13 @@
         {
           "expr": "rate(qbittorrent_dl_info_data_total[1m])",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Download",
           "refId": "A"
         },
         {
           "expr": "rate(qbittorrent_up_info_data_total[1m])",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Upload",
           "refId": "B"
         }
       ],
@@ -736,8 +736,8 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 10,
+        "w": 14,
         "x": 0,
         "y": 14
       },
@@ -853,8 +853,8 @@
       "gridPos": {
         "h": 10,
         "w": 10,
-        "x": 0,
-        "y": 22
+        "x": 14,
+        "y": 14
       },
       "id": 12,
       "interval": null,
@@ -883,121 +883,6 @@
       "title": "Torrents by categories",
       "type": "grafana-piechart-panel",
       "valueName": "current"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "decimals": 0,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 6,
-      "gridPos": {
-        "h": 10,
-        "w": 14,
-        "x": 10,
-        "y": 22
-      },
-      "hiddenSeries": false,
-      "id": 9,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": false
-      },
-      "percentage": false,
-      "pluginVersion": "7.2.2",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "increase(qbittorrent_up_info_data_total[1m])/60",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Up",
-          "refId": "A"
-        },
-        {
-          "expr": "increase(qbittorrent_dl_info_data_total[1m])/60",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Down",
-          "refId": "C"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Network traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "Bps",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
     }
   ],
   "refresh": "30s",
@@ -1038,5 +923,5 @@
   "timezone": "",
   "title": "Qbittorrent",
   "uid": "eKyTETFMk",
-  "version": 32
+  "version": 35
 }
