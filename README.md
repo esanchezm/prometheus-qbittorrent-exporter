@@ -22,7 +22,12 @@ Another option is run it in a docker container.
 ```
 docker run -e QBITTORRENT_PORT=8080 -e QBITTORRENT_HOST=myserver.local -p 8000:8000 esanchezm/prometheus-qbittorrent-exporter
 ```
-
+Add this to your prometheus.yml
+```
+  - job_name: "qbittorrent_exporter"
+    static_configs:
+        - targets: ['yourqbittorrentexporter:port']
+```
 The application reads configuration using environment variables:
 
 | Environment variable | Default       | Description |
