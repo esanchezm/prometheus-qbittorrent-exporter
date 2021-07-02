@@ -5,6 +5,7 @@ import signal
 import faulthandler
 from attrdict import AttrDict
 from qbittorrentapi import Client, TorrentStates
+from qbittorrentapi.exceptions import APIConnectionError
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
@@ -41,6 +42,7 @@ class QbittorrentMetricsCollector():
             self.torrents = self.client.torrents.info()
         except Exception as e:
             logger.error(f"Couldn't get server info: {e}")
+            return None
 
         metrics = self.get_qbittorrent_metrics()
 
@@ -66,20 +68,23 @@ class QbittorrentMetricsCollector():
         return metrics
 
     def get_qbittorrent_status_metrics(self):
+        response = {}
+        version = ""
+
         # Fetch data from API
         try:
             response = self.client.transfer.info
             version = self.client.app.version
             self.torrents = self.client.torrents.info()
-        except Exception as e:
-            logger.error(f"Couldn't get server info: {e}")
-            response = None
-            version = ""
+        except APIConnectionError as e:
+            logger.error(f"Couldn't get server info: {e.error_message}")
+        except Exception:
+            logger.error(f"Couldn't get server info")
 
         return [
             {
                 "name": f"{self.config['metrics_prefix']}_up",
-                "value": response is not None,
+                "value": bool(response),
                 "labels": {"version": version},
                 "help": "Whether if server is alive or not",
             },
