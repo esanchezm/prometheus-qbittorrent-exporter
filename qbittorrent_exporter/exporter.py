@@ -14,7 +14,7 @@ from pythonjsonlogger import jsonlogger
 
 # Enable dumps on stderr in case of segfault
 faulthandler.enable()
-logger = None
+logger = logging.getLogger()
 
 
 class QbittorrentMetricsCollector():
@@ -152,18 +152,21 @@ class QbittorrentMetricsCollector():
 
 class SignalHandler():
     def __init__(self):
-        self.shutdown = False
+        self.shutdownCount = 0
 
         # Register signal handler
         signal.signal(signal.SIGINT, self._on_signal_received)
         signal.signal(signal.SIGTERM, self._on_signal_received)
 
     def is_shutting_down(self):
-        return self.shutdown
+        return self.shutdownCount > 0
 
     def _on_signal_received(self, signal, frame):
+        if self.shutdownCount > 1:
+            logger.warn("Forcibly killing exporter")
+            sys.exit(1)
         logger.info("Exporter is shutting down")
-        self.shutdown = True
+        self.shutdownCount += 1
 
 
 def main():
@@ -187,7 +190,6 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S"
     )
     logHandler.setFormatter(formatter)
-    logger = logging.getLogger()
     logger.addHandler(logHandler)
     logger.setLevel(config["log_level"])
 
