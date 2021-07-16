@@ -178,6 +178,17 @@ def get_config_value(key, default=""):
 
 
 def main():
+    # Init logger so it can be used
+    logHandler = logging.StreamHandler()
+    formatter = jsonlogger.JsonFormatter(
+        "%(asctime) %(levelname) %(message)",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    logHandler.setFormatter(formatter)
+    logger = logging.getLogger()
+    logger.addHandler(logHandler)
+    logger.setLevel("INFO") # default until config is loaded
+
     config = {
         "host": get_config_value("QBITTORRENT_HOST", ""),
         "port": get_config_value("QBITTORRENT_PORT", ""),
@@ -187,20 +198,12 @@ def main():
         "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
     }
+    # set level once config has been loaded
+    logger.setLevel(config["log_level"])
 
     # Register signal handler
     signal_handler = SignalHandler()
 
-    # Init logger
-    logHandler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter(
-        "%(asctime) %(levelname) %(message)",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
-    logHandler.setFormatter(formatter)
-    logger = logging.getLogger()
-    logger.addHandler(logHandler)
-    logger.setLevel(config["log_level"])
 
     if not config["host"]:
         logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
