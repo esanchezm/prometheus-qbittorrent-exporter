@@ -165,16 +165,27 @@ class SignalHandler():
         logger.info("Exporter is shutting down")
         self.shutdown = True
 
+def get_config_value(key, default=""):
+    input_path = os.environ.get("FILE__" + key, None)
+    if input_path is not None:
+        try:
+            with open(input_path, "r") as input_file:
+                return input_file.read().strip()
+        except IOError as e:
+            logger.error(f"Unable to read value for {key} from {input_path}: {str(e)}")
+
+    return os.environ.get(key, default)
+
 
 def main():
     config = {
-        "host": os.environ.get("QBITTORRENT_HOST", ""),
-        "port": os.environ.get("QBITTORRENT_PORT", ""),
-        "username": os.environ.get("QBITTORRENT_USER", ""),
-        "password": os.environ.get("QBITTORRENT_PASS", ""),
-        "exporter_port": int(os.environ.get("EXPORTER_PORT", "8000")),
-        "log_level": os.environ.get("EXPORTER_LOG_LEVEL", "INFO"),
-        "metrics_prefix": os.environ.get("METRICS_PREFIX", "qbittorrent"),
+        "host": get_config_value("QBITTORRENT_HOST", ""),
+        "port": get_config_value("QBITTORRENT_PORT", ""),
+        "username": get_config_value("QBITTORRENT_USER", ""),
+        "password": get_config_value("QBITTORRENT_PASS", ""),
+        "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
+        "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
+        "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
     }
 
     # Register signal handler
