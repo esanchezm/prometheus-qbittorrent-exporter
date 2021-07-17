@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name='prometheus-qbittorrent-exporter',
     packages=['qbittorrent_exporter'],
-    version='1.1.2',
+    version='1.2.0',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='Prometheus exporter for qbittorrent',
