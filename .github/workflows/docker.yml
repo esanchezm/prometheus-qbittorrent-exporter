@@ -36,9 +36,27 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and push docker
+      - name: Build and push docker to DockerHub
         uses: docker/build-push-action@v2
         with:
           push: true
           platforms: linux/amd64,linux/arm64,linux/386
-          tags: ${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:latest,${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:${{ steps.extract_branch.outputs.tag }}
+          tags: |
+            ${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:latest
+            ${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:${{ steps.extract_branch.outputs.tag }}
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.GHCR_PERSONAL_TOKEN }}
+
+      - name: Build and push docker to Github Container Registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/386
+          tags: |
+            ghcr.io/${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:latest
+            ghcr.io/${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter:${{ steps.extract_branch.outputs.tag }}
