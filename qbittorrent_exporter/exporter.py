@@ -1,8 +1,11 @@
+import json
 import time
 import os
 import sys
 import signal
 import faulthandler
+
+import requests
 from attrdict import AttrDict
 from qbittorrentapi import Client, TorrentStates
 from qbittorrentapi.exceptions import APIConnectionError
@@ -13,36 +16,29 @@ from pythonjsonlogger import jsonlogger
 
 
 # Enable dumps on stderr in case of segfault
+from requests.auth import HTTPBasicAuth
+
 faulthandler.enable()
 logger = logging.getLogger()
 
 
 class QbittorrentMetricsCollector():
-    TORRENT_STATUSES = [
-        "downloading",
-        "uploading",
-        "complete",
-        "checking",
-        "errored",
-        "paused",
-    ]
+
 
     def __init__(self, config):
         self.config = config
-        self.torrents = None
-        self.client = Client(
-            host=config["host"],
-            port=config["port"],
-            username=config["username"],
-            password=config["password"],
-        )
+
+    def combine_url(self,endpoint):
+
+
+        base_url = self.config["host"]
+        base_url_port = self.config["port"]
+        combined_url = base_url + ":" + base_url_port + endpoint
+
+        return combined_url
 
     def collect(self):
-        try:
-            self.torrents = self.client.torrents.info()
-        except Exception as e:
-            logger.error(f"Couldn't get server info: {e}")
-            return None
+
 
         metrics = self.get_qbittorrent_metrics()
 
@@ -68,50 +64,86 @@ class QbittorrentMetricsCollector():
         return metrics
 
     def get_qbittorrent_status_metrics(self):
-        response = {}
+        response_stats = {}
         version = ""
 
-        # Fetch data from API
+        # Fetch data from API from Category "Server Info"
+        token = self.config["token"]
+
+        server_get_info_endpoint    = "/api/server-info"
+        server_version_endpoint     = "/api/server-info/version"
+        server_get_stats_endpoint   = "/api/server-info/stats"
+
+        server_info_headers = {'Accept': 'application/json'}
+        server_stats_headers = {'Accept': 'application/json',
+                                'Authorization': f'Bearer {token}'}
+
+
+        # Fetch server info
+
         try:
-            response = self.client.transfer.info
-            version = self.client.app.version
-            self.torrents = self.client.torrents.info()
-        except APIConnectionError as e:
+            # Fetch get server info
+            logging.info(f"Fetching server stats")
+            response_server_info = requests.request(
+                "GET",
+                self.combine_url(server_get_info_endpoint),
+                headers=server_info_headers
+            )
+
+            # Fetch server verison
+
+            response_server_version = requests.request(
+                "GET",
+                self.combine_url(server_version_endpoint),
+                headers=server_info_headers
+            )
+
+            # Fetch Server Stats
+
+            response_server_stats = requests.request(
+                "GET",
+                self.combine_url(server_get_stats_endpoint),
+                headers=server_stats_headers,
+
+            )
+
+
+
+        except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server info: {e.error_message}")
-        except Exception:
-            logger.error(f"Couldn't get server info")
+
 
         return [
             {
                 "name": f"{self.config['metrics_prefix']}_up",
-                "value": bool(response),
+                "value": bool(response_server_version),
                 "labels": {"version": version},
-                "help": "Whether if server is alive or not",
+                "help": "Immich Server Version Number",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_connected",
-                "value": response.get("connection_status", "") == "connected",
+                "value": response_stats.get("connection_status", "") == "connected",
                 "help": "Whether if server is connected or not",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_firewalled",
-                "value": response.get("connection_status", "") == "firewalled",
+                "value": response_stats.get("connection_status", "") == "firewalled",
                 "help": "Whether if server is under a firewall or not",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dht_nodes",
-                "value": response.get("dht_nodes", 0),
+                "value": response_stats.get("dht_nodes", 0),
                 "help": "DHT nodes connected to",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dl_info_data",
-                "value": response.get("dl_info_data", 0),
+                "value": response_stats.get("dl_info_data", 0),
                 "help": "Data downloaded this session (bytes)",
                 "type": "counter"
             },
             {
                 "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": response.get("up_info_data", 0),
+                "value": response_stats.get("up_info_data", 0),
                 "help": "Data uploaded this session (bytes)",
                 "type": "counter"
             },
@@ -192,6 +224,7 @@ def main():
     logger.setLevel("INFO") # default until config is loaded
 
     config = {
+        "token": get_config_value("IMMICH_API_TOKEN", ""),
         "host": get_config_value("QBITTORRENT_HOST", ""),
         "port": get_config_value("QBITTORRENT_PORT", ""),
         "username": get_config_value("QBITTORRENT_USER", ""),
