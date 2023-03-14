@@ -192,13 +192,16 @@ def main():
     logger.setLevel("INFO") # default until config is loaded
 
     config = {
+         "immich_host": get_config_value("IMMICH_HOST",""),
+        "immich_port": get_config_value("IMMICH_PORT",""),
+        "token": get_config_value("IMMICH_API_TOKEN", ""),
         "host": get_config_value("QBITTORRENT_HOST", ""),
         "port": get_config_value("QBITTORRENT_PORT", ""),
         "username": get_config_value("QBITTORRENT_USER", ""),
         "password": get_config_value("QBITTORRENT_PASS", ""),
         "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
         "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
-        "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
+        "metrics_prefix": get_config_value("METRICS_PREFIX", "immich"),
     }
     # set level once config has been loaded
     logger.setLevel(config["log_level"])
