@@ -3,6 +3,7 @@ import os
 import sys
 import signal
 import faulthandler
+from typing import re
 
 import requests
 from attrdict import AttrDict
@@ -19,33 +20,13 @@ logger = logging.getLogger()
 
 
 class QbittorrentMetricsCollector():
-    TORRENT_STATUSES = [
-        "downloading",
-        "uploading",
-        "complete",
-        "checking",
-        "errored",
-        "paused",
-    ]
 
     def __init__(self, config):
         self.config = config
-        self.torrents = None
-        self.client = Client(
-            host=config["host"],
-            port=config["port"],
-            username=config["username"],
-            password=config["password"],
-        )
 
     def collect(self):
-        try:
-            self.torrents = self.client.torrents.info()
-        except Exception as e:
-            logger.error(f"Couldn't get server info: {e}")
-            return None
 
-        metrics = self.get_qbittorrent_metrics()
+        metrics = self.get_immich_metrics()
 
         for metric in metrics:
             name = metric["name"]
@@ -61,12 +42,10 @@ class QbittorrentMetricsCollector():
             prom_metric.add_metric(value=value, labels=labels.values())
             yield prom_metric
 
-    def get_qbittorrent_metrics(self):
+    def get_immich_metrics(self):
         metrics = []
-        metrics.extend(self.get_qbittorrent_status_metrics())
-        metrics.extend(self.get_qbittorrent_torrent_tags_metrics())
         metrics.extend(self.get_immich_server_version_number())
-        metrics.extend(self.get_immich_server_info())
+       # metrics.extend(self.get_immich_server_info())
 
         return metrics
 
@@ -82,29 +61,34 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e.error_message}")
 
+
+
         return [
             {
                 "name": f"{self.config['metrics_prefix']}_dht_nodes",
-                "value": response_server_info.json()["diskAvailable "],
-                "help": "DHT nodes connected to",
+                "value": str(response_server_info.json()["diskAvailable"]),
+                "help": "Available space on disk",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dl_info_data",
-                "value": response_server_info.json()["diskSize"],
-                "help": "Data downloaded this session (bytes)",
-                "type": "counter"
+                "value": str(response_server_info.json()["diskSize"]),
+                "help": "Disk size",
+                #"type": "counter"
             },
             {
                 "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": response_server_info.json()["diskUse"],
-                "help": "Data uploaded this session (bytes)",
-                "type": "counter"
+                "value": str(response_server_info.json()["diskUse"]),
+                "help": "disk space in use",
+                #"type": "counter"
             },
         ]
 
     def get_immich_server_version_number(self):
+
+        server_version_endpoint = "/api/server-info/version"
+
         try:
-            server_version_endpoint = "/api/server-info/version"
+
             response_server_version = requests.request(
                 "GET",
                 self.combine_url(server_version_endpoint),
@@ -113,18 +97,19 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
 
-        server_version_number = {str(response_server_version.json()["major"]) + "." +
-                                 str(response_server_version.json()["minor"]) + "." +
-                                 str(response_server_version.json()["patch"]) + "."
-                                 }
-        str(server_version_number)
+        server_version_number = ( str(response_server_version.json()["major"]) + "_" +
+                                  str(response_server_version.json()["minor"]) + "_" +
+                                  str(response_server_version.json()["patch"])
+                                  )
+
+
 
         return [
             {
                 "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": str(server_version_number),
-                "help": "Data uploaded this session (bytes)",
-                "type": "counter"
+                "value": server_version_number,
+                "help": "server version number",
+
             }
         ]
 
@@ -135,88 +120,6 @@ class QbittorrentMetricsCollector():
 
         return combined_url
 
-    def get_qbittorrent_status_metrics(self):
-        response = {}
-        version = ""
-
-        # Fetch data from API
-        try:
-            response = self.client.transfer.info
-            version = self.client.app.version
-            self.torrents = self.client.torrents.info()
-        except APIConnectionError as e:
-            logger.error(f"Couldn't get server info: {e.error_message}")
-        except Exception:
-            logger.error(f"Couldn't get server info")
-
-        return [
-            {
-                "name": f"{self.config['metrics_prefix']}_up",
-                "value": bool(response),
-                "labels": {"version": version},
-                "help": "Whether if server is alive or not",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_connected",
-                "value": response.get("connection_status", "") == "connected",
-                "help": "Whether if server is connected or not",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_firewalled",
-                "value": response.get("connection_status", "") == "firewalled",
-                "help": "Whether if server is under a firewall or not",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_dht_nodes",
-                "value": response.get("dht_nodes", 0),
-                "help": "DHT nodes connected to",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_dl_info_data",
-                "value": response.get("dl_info_data", 0),
-                "help": "Data downloaded this session (bytes)",
-                "type": "counter"
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": response.get("up_info_data", 0),
-                "help": "Data uploaded this session (bytes)",
-                "type": "counter"
-            },
-        ]
-
-    def get_qbittorrent_torrent_tags_metrics(self):
-        try:
-            categories = self.client.torrent_categories.categories
-        except Exception as e:
-            logger.error(f"Couldn't fetch categories: {e}")
-            return []
-
-        if not self.torrents:
-            return []
-
-        metrics = []
-        categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
-        for category in categories:
-            category_torrents = [t for t in self.torrents if
-                                 t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
-
-            for status in self.TORRENT_STATUSES:
-                status_prop = f"is_{status}"
-                status_torrents = [
-                    t for t in category_torrents if getattr(TorrentStates, status_prop).fget(TorrentStates(t['state']))
-                ]
-                metrics.append({
-                    "name": f"{self.config['metrics_prefix']}_torrents_count",
-                    "value": len(status_torrents),
-                    "labels": {
-                        "status": status,
-                        "category": category,
-                    },
-                    "help": f"Number of torrents in status {status} under category {category}"
-                })
-
-        return metrics
 
 
 class SignalHandler():
@@ -265,10 +168,6 @@ def main():
         "immich_host": get_config_value("IMMICH_HOST", ""),
         "immich_port": get_config_value("IMMICH_PORT", ""),
         "token": get_config_value("IMMICH_API_TOKEN", ""),
-        "host": get_config_value("QBITTORRENT_HOST", ""),
-        "port": get_config_value("QBITTORRENT_PORT", ""),
-        "username": get_config_value("QBITTORRENT_USER", ""),
-        "password": get_config_value("QBITTORRENT_PASS", ""),
         "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
         "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": get_config_value("METRICS_PREFIX", "immich"),
@@ -279,11 +178,11 @@ def main():
     # Register signal handler
     signal_handler = SignalHandler()
 
-    if not config["host"]:
-        logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
+    if not config["immich_host"]:
+        logger.error("No host specified, please set IMMICH_HOST environment variable")
         sys.exit(1)
-    if not config["port"]:
-        logger.error("No post specified, please set QBITTORRENT_PORT environment variable")
+    if not config["token"]:
+        logger.error("No token specified, please set IMMICH_API_TOKEN environment variable")
         sys.exit(1)
 
     # Register our custom collector
