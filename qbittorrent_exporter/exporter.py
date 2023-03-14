@@ -3,6 +3,8 @@ import os
 import sys
 import signal
 import faulthandler
+
+import requests
 from attrdict import AttrDict
 from qbittorrentapi import Client, TorrentStates
 from qbittorrentapi.exceptions import APIConnectionError
@@ -10,7 +12,6 @@ from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
 from pythonjsonlogger import jsonlogger
-
 
 # Enable dumps on stderr in case of segfault
 faulthandler.enable()
@@ -64,8 +65,43 @@ class QbittorrentMetricsCollector():
         metrics = []
         metrics.extend(self.get_qbittorrent_status_metrics())
         metrics.extend(self.get_qbittorrent_torrent_tags_metrics())
+        metrics.extend(self.get_server_version_number())
 
         return metrics
+
+
+    def get_server_version_number(self):
+        try:
+            server_version_endpoint = "/api/server-info/version"
+            response_server_version = requests.request(
+                "GET",
+                self.combine_url(server_version_endpoint),
+                headers={'Accept': 'application/json'}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Couldn't get server version: {e}")
+
+        server_version_number = {str(response_server_version.json()["major"]) + "." +
+                                 str(response_server_version.json()["minor"]) + "." +
+                                 str(response_server_version.json()["patch"]) + "."
+                                 }
+        str(server_version_number)
+
+        return [
+            {
+                "name": f"{self.config['metrics_prefix']}_up_info_data",
+                "value": str(server_version_number),
+                "help": "Data uploaded this session (bytes)",
+                "type": "counter"
+            }
+        ]
+
+    def combine_url(self, api_endpoint):
+        base_url = self.config["immich_host"]
+        base_url_port = self.config["immich_port"]
+        combined_url = base_url + ":" + base_url_port + api_endpoint
+
+        return combined_url
 
     def get_qbittorrent_status_metrics(self):
         response = {}
@@ -130,7 +166,8 @@ class QbittorrentMetricsCollector():
         metrics = []
         categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
-            category_torrents = [t for t in self.torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
+            category_torrents = [t for t in self.torrents if
+                                 t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
@@ -163,10 +200,11 @@ class SignalHandler():
 
     def _on_signal_received(self, signal, frame):
         if self.shutdownCount > 1:
-            logger.warn("Forcibly killing exporter")
+            logger.warning("Forcibly killing exporter")
             sys.exit(1)
         logger.info("Exporter is shutting down")
         self.shutdownCount += 1
+
 
 def get_config_value(key, default=""):
     input_path = os.environ.get("FILE__" + key, None)
@@ -189,11 +227,11 @@ def main():
     )
     logHandler.setFormatter(formatter)
     logger.addHandler(logHandler)
-    logger.setLevel("INFO") # default until config is loaded
+    logger.setLevel("INFO")  # default until config is loaded
 
     config = {
-         "immich_host": get_config_value("IMMICH_HOST",""),
-        "immich_port": get_config_value("IMMICH_PORT",""),
+        "immich_host": get_config_value("IMMICH_HOST", ""),
+        "immich_port": get_config_value("IMMICH_PORT", ""),
         "token": get_config_value("IMMICH_API_TOKEN", ""),
         "host": get_config_value("QBITTORRENT_HOST", ""),
         "port": get_config_value("QBITTORRENT_PORT", ""),
@@ -208,7 +246,6 @@ def main():
 
     # Register signal handler
     signal_handler = SignalHandler()
-
 
     if not config["host"]:
         logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
