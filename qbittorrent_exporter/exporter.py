@@ -65,12 +65,44 @@ class QbittorrentMetricsCollector():
         metrics = []
         metrics.extend(self.get_qbittorrent_status_metrics())
         metrics.extend(self.get_qbittorrent_torrent_tags_metrics())
-        metrics.extend(self.get_server_version_number())
+        metrics.extend(self.get_immich_server_version_number())
+        metrics.extend(self.get_immich_server_info())
 
         return metrics
 
+    def get_immich_server_info(self):
 
-    def get_server_version_number(self):
+        try:
+            endpoint_server_info = "/api/server-info"
+            response_server_info = requests.request(
+                "GET",
+                self.combine_url(endpoint_server_info),
+                headers={'Accept': 'application/json'}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Couldn't get server version: {e.error_message}")
+
+        return [
+            {
+                "name": f"{self.config['metrics_prefix']}_dht_nodes",
+                "value": response_server_info.json()["diskAvailable "],
+                "help": "DHT nodes connected to",
+            },
+            {
+                "name": f"{self.config['metrics_prefix']}_dl_info_data",
+                "value": response_server_info.json()["diskSize"],
+                "help": "Data downloaded this session (bytes)",
+                "type": "counter"
+            },
+            {
+                "name": f"{self.config['metrics_prefix']}_up_info_data",
+                "value": response_server_info.json()["diskUse"],
+                "help": "Data uploaded this session (bytes)",
+                "type": "counter"
+            },
+        ]
+
+    def get_immich_server_version_number(self):
         try:
             server_version_endpoint = "/api/server-info/version"
             response_server_version = requests.request(
