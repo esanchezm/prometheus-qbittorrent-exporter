@@ -3,7 +3,7 @@ import os
 import sys
 import signal
 import faulthandler
-from typing import re
+
 
 import requests
 from attrdict import AttrDict
@@ -45,7 +45,7 @@ class QbittorrentMetricsCollector():
     def get_immich_metrics(self):
         metrics = []
         metrics.extend(self.get_immich_server_version_number())
-       # metrics.extend(self.get_immich_server_info())
+        metrics.extend(self.get_immich_server_info())
 
         return metrics
 
@@ -65,22 +65,28 @@ class QbittorrentMetricsCollector():
 
         return [
             {
-                "name": f"{self.config['metrics_prefix']}_dht_nodes",
-                "value": str(response_server_info.json()["diskAvailable"]),
+                "name": f"{self.config['metrics_prefix']}_diskAvailable",
+                "value": str(response_server_info.json()["diskAvailableRaw"]),
                 "help": "Available space on disk",
             },
             {
-                "name": f"{self.config['metrics_prefix']}_dl_info_data",
-                "value": str(response_server_info.json()["diskSize"]),
-                "help": "Disk size",
+                "name": f"{self.config['metrics_prefix']}_totalDiskSize",
+                "value": str(response_server_info.json()["diskSizeRaw"]),
+                "help": "tota disk size",
                 #"type": "counter"
             },
             {
-                "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": str(response_server_info.json()["diskUse"]),
+                "name": f"{self.config['metrics_prefix']}_diskUse",
+                "value": str(response_server_info.json()["diskUseRaw"]),
                 "help": "disk space in use",
                 #"type": "counter"
             },
+            {
+                "name": f"{self.config['metrics_prefix']}_diskUsagePercentage",
+                "value": str(response_server_info.json()["diskUsagePercentage"]),
+                "help": "disk usage in percent",
+                # "type": "counter"
+            }
         ]
 
     def get_immich_server_version_number(self):
@@ -97,18 +103,18 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
 
-        server_version_number = ( str(response_server_version.json()["major"]) + "_" +
-                                  str(response_server_version.json()["minor"]) + "_" +
+        server_version_number = ( str(response_server_version.json()["major"]) + "." +
+                                  str(response_server_version.json()["minor"]) + "." +
                                   str(response_server_version.json()["patch"])
                                   )
 
 
-
         return [
             {
-                "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": server_version_number,
+                "name": f"{self.config['metrics_prefix']}_version_number",
+                "value": bool(server_version_number),
                 "help": "server version number",
+                "labels": {"version": server_version_number}
 
             }
         ]
