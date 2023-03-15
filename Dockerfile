@@ -19,4 +19,4 @@ ENV IMMICH_PORT=""
 ENV EXPORTER_PORT="8000"
 ENV EXPORTER_LOG_LEVEL="INFO"
 
-ENTRYPOINT ["qbittorrent-exporter"]
+ENTRYPOINT ["immich_exporter"]

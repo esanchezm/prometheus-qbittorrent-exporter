@@ -6,9 +6,6 @@ import faulthandler
 
 
 import requests
-from attrdict import AttrDict
-from qbittorrentapi import Client, TorrentStates
-from qbittorrentapi.exceptions import APIConnectionError
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
