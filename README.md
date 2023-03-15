@@ -1,6 +1,6 @@
-# Prometheus qBittorrent exporter
+# Prometheus Immich exporter
 
-A prometheus exporter for qBitorrent. Get metrics from a server and offers them in a prometheus format.
+A prometheus exporter for Immich. Get metrics from a server and offers them in a prometheus format.
 
 
 ## How to use it
@@ -14,47 +14,54 @@ pip3 install prometheus-qbittorrent-exporter
 Then you can run it with
 
 ```
-qbittorrent-exporter
+immich-exporter
 ```
 
-Another option is run it in a docker container.
+Another option is to run it in a docker container. Here is an example docker run command 
 
 ```
-docker run -e QBITTORRENT_PORT=8080 -e QBITTORRENT_HOST=myserver.local -p 8000:8000 esanchezm/prometheus-qbittorrent-exporter
+docker run -e IMMICH_PORT=8010 -e IMMICH_HOST=192.168.178.1 -p 8000:8000 friendlyfriend/prometheus-immich-exporter
 ```
 Add this to your prometheus.yml
 ```
   - job_name: "qbittorrent_exporter"
     static_configs:
-        - targets: ['yourqbittorrentexporter:port']
+        - targets: ['yourimmichexporter:port']
 ```
 The application reads configuration using environment variables:
 
-| Environment variable | Default       | Description |
-| -------------------- | ------------- | ----------- |
-| `QBITTORRENT_HOST`   |               | qbittorrent server hostname |
-| `QBITTORRENT_PORT`   |               | qbittorrent server port |
-| `QBITTORRENT_USER`   | `""`          | qbittorrent username |
-| `QBITTORRENT_PASS`   | `""`          | qbittorrent password |
-| `EXPORTER_PORT`      | `8000`        | Exporter listening port |
-| `EXPORTER_LOG_LEVEL` | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `METRICS_PREFIX`     | `qbittorrent` | Prefix to add to all the metrics |
+| Environment variable | Default  | Description                                        |
+|----------------------|----------|----------------------------------------------------|
+| `IMMICH_HOST`        |          | immich server hostname                            |
+| `IMMICH_PORT`        |          | immich server port                                 |
+| `EXPORTER_PORT`      | `8000`   | Exporter listening port                            |
+| `EXPORTER_LOG_LEVEL` | `INFO`   | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `METRICS_PREFIX`     | `immich` | Prefix to add to all the metrics                   |
 
 
 ## Metrics
 
-These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qbittorrent`:
+These are the metrics this program exports, assuming the `METRICS_PREFIX` is `immich`:
 
 
-| Metric name                                         | Type     | Description      |
-| --------------------------------------------------- | -------- | ---------------- |
-| `qbittorrent_up`                                    | gauge    | Whether if the qBittorrent server is answering requests from this exporter. A `version` label with the server version is added |
-| `qbittorrent_connected`                                         | gauge    | Whether if the qBittorrent server is connected to the Bittorrent network.  |
-| `qbittorrent_firewalled`                                        | gauge    | Whether if the qBittorrent server is connected to the Bittorrent network but is behind a firewall.  |
-| `qbittorrent_dht_nodes`                                         | gauge    | Number of DHT nodes connected to |
-| `qbittorrent_dl_info_data`                                      | counter  | Data downloaded since the server started, in bytes |
-| `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes |
-| `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|
+| `metric name`                            | `description`                                                             |
+|------------------------------------------|---------------------------------------------------------------------------|
+| `immich_server_info_version_number`      | `pings server and passes version number with the use of labels={version}` |     
+| `immich_server_info_diskAvailable`       | `available space on disk`                                                 |     
+| `immich_server_info_totalDiskSize`       | `total disk size`                                                         |     
+| `immich_server_info_diskUse`             | `disk space used by your system`                                          |     
+| `immich_server_info_diskUsagePercentage` | `same as above but in percentage`                                         |     
+             
+| `metric name`                         | `description`                               |
+|---------------------------------------|---------------------------------------------|
+| `immich_server_stats_user_count`      | `number of users signed up `                |
+| `immich_server_stats_photos_by_users` | `array of users and their amount of photos` |
+| `immich_server_stats_photos_growth`   | `sum of photos of all users`                |
+| `immich_server_stats_videos_by_users` | `array of users and their amount of videos` |
+| `immich_server_stats_videos_growth`   | `sum of all videos of all users`            |
+| `immich_server_stats_usage_by_users`  | `the disk space each user uses`             |
+| `immich_server_stats_usage_growth`    | `sum of disk space taken up by all users`   |
+           
 
 ## Screenshot
 

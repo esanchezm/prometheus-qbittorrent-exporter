@@ -4,7 +4,6 @@ import sys
 import signal
 import faulthandler
 
-
 import requests
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
@@ -16,7 +15,7 @@ faulthandler.enable()
 logger = logging.getLogger()
 
 
-class QbittorrentMetricsCollector():
+class ImmichMetricsCollector:
 
     def __init__(self, config):
         self.config = config
@@ -43,13 +42,14 @@ class QbittorrentMetricsCollector():
         metrics = []
         metrics.extend(self.get_immich_server_version_number())
         metrics.extend(self.get_immich_server_info())
-        metrics.extend(self.get_immich_users_stat())
+        metrics.extend(self.get_immich_users_stat)
+        metrics.extend(self.get_immich_users_stat_growth())
 
         return metrics
 
-    def get_immich_users_stat(self):
+    def get_immich_users_stat_growth(self):
 
-
+        global response_user_stats
         try:
             endpoint_user_stats = "/api/server-info/stats"
             response_user_stats = requests.request(
@@ -61,25 +61,58 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
 
-        metrics = []
+        userData = response_user_stats.json()["usageByUser"]
+        # photos growth gauge
         userCount = len(response_user_stats.json()["usageByUser"])
+        photos_growth_total = 0
+        videos_growth_total = 0
+        usage_growth_total = 0
 
-        #userCount
-        metrics.append(
+        for x in range(0, userCount):
+            photos_growth_total += userData[x]["photos"]
+            # total video growth
+            videos_growth_total += userData[x]["videos"]
+            # total disk growth
+            usage_growth_total += userData[x]["usage"]
+
+        return [
             {
-                "name": f"{self.config['metrics_prefix']}_user_count",
+                "name": f"{self.config['metrics_prefix']}_server_stats_user_count",
                 "value": userCount,
                 "help": "number of users on the immich server"
+            },
+            {
+                "name": f"{self.config['metrics_prefix']}_server_stats_photos_growth",
+                "value": photos_growth_total,
+                "help": "photos counter that is added or removed"
+            },
+            {
+                "name": f"{self.config['metrics_prefix']}_server_stats_videos_growth",
+                "value": videos_growth_total,
+                "help": "videos counter that is added or removed"
+            },
+            {
+                "name": f"{self.config['metrics_prefix']}_server_stats_usage_growth",
+                "value": usage_growth_total,
+                "help": "videos counter that is added or removed"
             }
-        )
 
-        #Photos
+        ]
+
+    @property
+    def get_immich_users_stat(self):
+
+        metrics = []
+        # To get the user count an api-endpoint exists but this works too. As a result one less api call is being made
+        userCount = len(response_user_stats.json()["usageByUser"])
+        # json array of all users with stats
         userData = response_user_stats.json()["usageByUser"]
-        for x in range(0,userCount):
+
+        for x in range(0, userCount):
             metrics.append(
 
-                    {
-                    "name": f"{self.config['metrics_prefix']}_photos_by_user",
+                {
+                    "name": f"{self.config['metrics_prefix']}_server_stats_photos_by_users",
                     "value": userData[x]['photos'],
                     "labels": {
                         "firstName": userData[x]["userFirstName"],
@@ -87,14 +120,14 @@ class QbittorrentMetricsCollector():
                     },
                     "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
-                    }
-                )
+                }
+            )
 
-        #videos
-        for x in range(0,userCount):
+        # videos
+        for x in range(0, userCount):
             metrics.append(
-                    {
-                    "name": f"{self.config['metrics_prefix']}_videos_by_user",
+                {
+                    "name": f"{self.config['metrics_prefix']}_server_stats_videos_by_users",
                     "value": userData[x]['videos'],
                     "labels": {
                         "firstName": userData[x]["userFirstName"],
@@ -102,13 +135,13 @@ class QbittorrentMetricsCollector():
                     },
                     "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
-                    }
-                )
-        #usage
-        for x in range(0,userCount):
+                }
+            )
+        # usage
+        for x in range(0, userCount):
             metrics.append(
-                    {
-                    "name": f"{self.config['metrics_prefix']}_usage_by_user",
+                {
+                    "name": f"{self.config['metrics_prefix']}_server_stats_usage_by_users",
                     "value": (userData[x]['usage']),
                     "labels": {
                         "firstName": userData[x]["userFirstName"],
@@ -116,8 +149,8 @@ class QbittorrentMetricsCollector():
                     },
                     "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
-                    }
-                )
+                }
+            )
 
         return metrics
 
@@ -133,30 +166,26 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
 
-
-
-
-
         return [
             {
-                "name": f"{self.config['metrics_prefix']}_diskAvailable",
+                "name": f"{self.config['metrics_prefix']}_server_info_diskAvailable",
                 "value": (response_server_info.json()["diskAvailableRaw"]),
                 "help": "Available space on disk",
             },
             {
-                "name": f"{self.config['metrics_prefix']}_totalDiskSize",
+                "name": f"{self.config['metrics_prefix']}_server_info_totalDiskSize",
                 "value": (response_server_info.json()["diskSizeRaw"]),
                 "help": "tota disk size",
-                #"type": "counter"
+                # "type": "counter"
             },
             {
-                "name": f"{self.config['metrics_prefix']}_diskUse",
+                "name": f"{self.config['metrics_prefix']}_server_info_diskUse",
                 "value": (response_server_info.json()["diskUseRaw"]),
                 "help": "disk space in use",
-                #"type": "counter"
+                # "type": "counter"
             },
             {
-                "name": f"{self.config['metrics_prefix']}_diskUsagePercentage",
+                "name": f"{self.config['metrics_prefix']}_server_info_diskUsagePercentage",
                 "value": (response_server_info.json()["diskUsagePercentage"]),
                 "help": "disk usage in percent",
                 # "type": "counter"
@@ -166,6 +195,7 @@ class QbittorrentMetricsCollector():
     def get_immich_server_version_number(self):
 
         server_version_endpoint = "/api/server-info/version"
+        response_server_version = ""
 
         try:
 
@@ -177,15 +207,14 @@ class QbittorrentMetricsCollector():
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
 
-        server_version_number = ( str(response_server_version.json()["major"]) + "." +
-                                  str(response_server_version.json()["minor"]) + "." +
-                                  str(response_server_version.json()["patch"])
-                                  )
-
+        server_version_number = (str(response_server_version.json()["major"]) + "." +
+                                 str(response_server_version.json()["minor"]) + "." +
+                                 str(response_server_version.json()["patch"])
+                                 )
 
         return [
             {
-                "name": f"{self.config['metrics_prefix']}_version_number",
+                "name": f"{self.config['metrics_prefix']}_server_info_version_number",
                 "value": bool(server_version_number),
                 "help": "server version number",
                 "labels": {"version": server_version_number}
@@ -194,12 +223,12 @@ class QbittorrentMetricsCollector():
         ]
 
     def combine_url(self, api_endpoint):
+        prefix_url = "http://"
         base_url = self.config["immich_host"]
         base_url_port = self.config["immich_port"]
-        combined_url = base_url + ":" + base_url_port + api_endpoint
+        combined_url = prefix_url + base_url + ":" + base_url_port + api_endpoint
 
         return combined_url
-
 
 
 class SignalHandler():
@@ -261,13 +290,16 @@ def main():
     if not config["immich_host"]:
         logger.error("No host specified, please set IMMICH_HOST environment variable")
         sys.exit(1)
+    if not config["immich_port"]:
+        logger.error("No host specified, please set IMMICH_PORT environment variable")
+        sys.exit(1)
     if not config["token"]:
         logger.error("No token specified, please set IMMICH_API_TOKEN environment variable")
         sys.exit(1)
 
     # Register our custom collector
     logger.info("Exporter is starting up")
-    REGISTRY.register(QbittorrentMetricsCollector(config))
+    REGISTRY.register(ImmichMetricsCollector(config))
 
     # Start server
     start_http_server(config["exporter_port"])
