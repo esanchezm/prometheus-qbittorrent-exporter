@@ -46,6 +46,81 @@ class QbittorrentMetricsCollector():
         metrics = []
         metrics.extend(self.get_immich_server_version_number())
         metrics.extend(self.get_immich_server_info())
+        metrics.extend(self.get_immich_users_stat())
+
+        return metrics
+
+    def get_immich_users_stat(self):
+
+
+        try:
+            endpoint_user_stats = "/api/server-info/stats"
+            response_user_stats = requests.request(
+                "GET",
+                self.combine_url(endpoint_user_stats),
+                headers={'Accept': 'application/json',
+                         "x-api-key": self.config["token"]}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Couldn't get server version: {e}")
+
+        metrics = []
+        userCount = len(response_user_stats.json()["usageByUser"])
+
+        #userCount
+        metrics.append(
+            {
+                "name": f"{self.config['metrics_prefix']}_user_count",
+                "value": userCount,
+                "help": "number of users on the immich server"
+            }
+        )
+
+        #Photos
+        usersDatas = response_user_stats.json()["usageByUser"]  # TODO rename usersdatas in the future
+        for x in range(0,userCount):                              # TODO rename usersdatas in the future
+            metrics.append(
+
+                    {
+                    "name": f"{self.config['metrics_prefix']}_photos_by_user",
+                    "value": usersDatas[x]['photos'],
+                    "labels": {
+                        "firstName": usersDatas[x]["userFirstName"],
+
+                    },
+                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+
+                    }
+                )
+
+        #videos
+        for x in range(0,userCount):
+            metrics.append(
+                    {
+                    "name": f"{self.config['metrics_prefix']}_videos_by_user",
+                    "value": usersDatas[x]['videos'],
+                    "labels": {
+                        "firstName": usersDatas[x]["userFirstName"],
+
+                    },
+                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+
+                    }
+                )
+        #usage
+        for x in range(0,userCount):
+            metrics.append(
+                    {
+                    "name": f"{self.config['metrics_prefix']}_usage_by_user",
+                    "value": (usersDatas[x]['usage']),
+                    "labels": {
+                        "firstName": usersDatas[x]["userFirstName"],
+
+                    },
+                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+
+                    }
+                )
 
         return metrics
 
@@ -59,31 +134,33 @@ class QbittorrentMetricsCollector():
                 headers={'Accept': 'application/json'}
             )
         except requests.exceptions.RequestException as e:
-            logger.error(f"Couldn't get server version: {e.error_message}")
+            logger.error(f"Couldn't get server version: {e}")
+
+
 
 
 
         return [
             {
                 "name": f"{self.config['metrics_prefix']}_diskAvailable",
-                "value": str(response_server_info.json()["diskAvailableRaw"]),
+                "value": (response_server_info.json()["diskAvailableRaw"]),
                 "help": "Available space on disk",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_totalDiskSize",
-                "value": str(response_server_info.json()["diskSizeRaw"]),
+                "value": (response_server_info.json()["diskSizeRaw"]),
                 "help": "tota disk size",
                 #"type": "counter"
             },
             {
                 "name": f"{self.config['metrics_prefix']}_diskUse",
-                "value": str(response_server_info.json()["diskUseRaw"]),
+                "value": (response_server_info.json()["diskUseRaw"]),
                 "help": "disk space in use",
                 #"type": "counter"
             },
             {
                 "name": f"{self.config['metrics_prefix']}_diskUsagePercentage",
-                "value": str(response_server_info.json()["diskUsagePercentage"]),
+                "value": (response_server_info.json()["diskUsagePercentage"]),
                 "help": "disk usage in percent",
                 # "type": "counter"
             }
