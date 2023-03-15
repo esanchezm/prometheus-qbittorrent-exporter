@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>prometheus-immich-exporter</Name>
+  <Repository>friendlyfriend/prometheus-immich-exporter</Repository>
+  <Registry>https://hub.docker.com/repository/docker/friendlyfriend/prometheus-immich-exporter</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/friendlyFriend4000/prometheus-immich-exporter/issues</Support>
+  <Project>https://github.com/friendlyFriend4000/prometheus-immich-exporter</Project>
+  <Overview>A simple prometheus exporter for immich to display its metrics in grafana</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT=8028]</WebUI>
+  <TemplateURL/>
+  <Icon>https://github.com/friendlyFriend4000/prometheus-immich-exporter/blob/master/unraid/icon.png?raw=true</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1678876858</DateInstalled>
+  <DonateText/>If I made your day a little bit brighter, consider donating.</DonateText>
+  <DonateLink/>https://www.paypal.com/donate/?hosted_button_id=DPDKED3T3BFV8</DonateLink>
+  <Requires/>
+  <Config Name="Host Port 1" Target="8000" Default="8028" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8028</Config>
+  <Config Name="immich api token" Target="IMMICH_API_TOKEN" Default="" Mode="" Description="You need to log into to your immich admin account&#13;&#10;and create an api token in your settings" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="immich_host" Target="IMMICH_HOST" Default="" Mode="" Description="example: 192.168.178.2" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="immich port" Target="IMMICH_PORT" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false"/>
+</Container>
