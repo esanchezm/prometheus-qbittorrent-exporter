@@ -77,18 +77,18 @@ class QbittorrentMetricsCollector():
         )
 
         #Photos
-        usersDatas = response_user_stats.json()["usageByUser"]  # TODO rename usersdatas in the future
-        for x in range(0,userCount):                              # TODO rename usersdatas in the future
+        userData = response_user_stats.json()["usageByUser"]
+        for x in range(0,userCount):
             metrics.append(
 
                     {
                     "name": f"{self.config['metrics_prefix']}_photos_by_user",
-                    "value": usersDatas[x]['photos'],
+                    "value": userData[x]['photos'],
                     "labels": {
-                        "firstName": usersDatas[x]["userFirstName"],
+                        "firstName": userData[x]["userFirstName"],
 
                     },
-                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
                     }
                 )
@@ -98,12 +98,12 @@ class QbittorrentMetricsCollector():
             metrics.append(
                     {
                     "name": f"{self.config['metrics_prefix']}_videos_by_user",
-                    "value": usersDatas[x]['videos'],
+                    "value": userData[x]['videos'],
                     "labels": {
-                        "firstName": usersDatas[x]["userFirstName"],
+                        "firstName": userData[x]["userFirstName"],
 
                     },
-                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
                     }
                 )
@@ -112,12 +112,12 @@ class QbittorrentMetricsCollector():
             metrics.append(
                     {
                     "name": f"{self.config['metrics_prefix']}_usage_by_user",
-                    "value": (usersDatas[x]['usage']),
+                    "value": (userData[x]['usage']),
                     "labels": {
-                        "firstName": usersDatas[x]["userFirstName"],
+                        "firstName": userData[x]["userFirstName"],
 
                     },
-                    "help": f"Number of photos by user {usersDatas[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
 
                     }
                 )
