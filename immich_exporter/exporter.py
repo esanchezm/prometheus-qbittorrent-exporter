@@ -49,7 +49,7 @@ class ImmichMetricsCollector:
 
     def get_immich_users_stat_growth(self):
 
-        global response_user_stats
+
         try:
             endpoint_user_stats = "/api/server-info/stats"
             response_user_stats = requests.request(
@@ -102,10 +102,28 @@ class ImmichMetricsCollector:
     @property
     def get_immich_users_stat(self):
 
+
+        global response_user_stats
+        try:
+            endpoint_user_stats = "/api/server-info/stats"
+            response_user_stats = requests.request(
+                "GET",
+                self.combine_url(endpoint_user_stats),
+                headers={'Accept': 'application/json',
+                         "x-api-key": self.config["token"]}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Couldn't get server version: {e}")
+
         metrics = []
         # To get the user count an api-endpoint exists but this works too. As a result one less api call is being made
-        userCount = len(response_user_stats.json()["usageByUser"])
+
+        try:
+            userCount = len(response_user_stats.json()["usageByUser"])
+        except Exception:
+            logger.error("Is the Immich api token valid? Traceback:KeyError: 'usageByUser': ")
         # json array of all users with stats
+        # this line throws an error if api token is wrong. if the token is wrong or inavlid this will return a KeyError : 'usage by user'
         userData = response_user_stats.json()["usageByUser"]
 
         for x in range(0, userCount):
