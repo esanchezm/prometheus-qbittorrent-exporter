@@ -20,7 +20,11 @@ qbittorrent-exporter
 Another option is run it in a docker container.
 
 ```
-docker run -e QBITTORRENT_PORT=8080 -e QBITTORRENT_HOST=myserver.local -p 8000:8000 esanchezm/prometheus-qbittorrent-exporter
+docker run \
+    -e QBITTORRENT_PORT=8080 \
+    -e QBITTORRENT_HOST=myserver.local \
+    -p 8000:8000 \
+    ghcr.io/esanchezm/prometheus-qbittorrent-exporter
 ```
 Add this to your prometheus.yml
 ```
