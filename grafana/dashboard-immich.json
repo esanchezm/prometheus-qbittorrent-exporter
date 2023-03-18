@@ -1,47 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "9.4.3"
-    },
-    {
-      "type": "panel",
-      "id": "piechart",
-      "name": "Pie chart",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -67,14 +24,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 11,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -123,7 +80,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -140,7 +97,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -190,7 +147,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_stats_user_count",
@@ -205,7 +162,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -252,7 +209,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "sum(immich_server_stats_usage_by_users)",
@@ -267,7 +224,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -314,7 +271,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_info_totalDiskSize",
@@ -329,7 +286,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -376,7 +333,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_info_diskUse",
@@ -391,7 +348,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -413,6 +370,10 @@
               {
                 "color": "#EAB839",
                 "value": 20
+              },
+              {
+                "color": "#6ED0E0",
+                "value": 30
               }
             ]
           },
@@ -428,7 +389,7 @@
       },
       "id": 16,
       "options": {
-        "colorMode": "none",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -446,11 +407,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "immich_server_info_diskUsagePercentage",
+          "expr": "100 - immich_server_info_diskUsagePercentage",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -465,7 +426,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -513,7 +474,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -531,7 +492,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -579,7 +540,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_useage_growth[7d])",
@@ -595,7 +556,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -647,7 +608,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_stats_usage_by_users",
@@ -662,7 +623,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -710,7 +671,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_useage_growth[30h])",
@@ -726,7 +687,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -774,7 +735,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_useage_growth[365d])",
@@ -790,7 +751,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -835,7 +796,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[24h])",
@@ -851,7 +812,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -896,7 +857,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[7d])",
@@ -912,7 +873,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -964,7 +925,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -981,7 +942,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1028,7 +989,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[4w])",
@@ -1044,7 +1005,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1091,7 +1052,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[52w])",
@@ -1107,7 +1068,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "description": "amount of photos over time",
       "fieldConfig": {
@@ -1187,7 +1148,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_stats_photos_by_users",
@@ -1203,7 +1164,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1215,8 +1176,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1250,7 +1210,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[1d])",
@@ -1266,7 +1226,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1278,8 +1238,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1313,7 +1272,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[4w])\r\n",
@@ -1329,7 +1288,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1381,7 +1340,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_stats_videos_by_users",
@@ -1396,7 +1355,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1408,8 +1367,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1443,7 +1401,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[1w])",
@@ -1459,7 +1417,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1471,8 +1429,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1506,7 +1463,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[52w])\r\n",
@@ -1522,7 +1479,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "o-nLTb0Vz"
       },
       "description": "amount of videos over time",
       "fieldConfig": {
@@ -1568,8 +1525,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1599,7 +1555,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "o-nLTb0Vz"
           },
           "editorMode": "code",
           "expr": "immich_server_stats_videos_by_users",
@@ -1629,6 +1585,6 @@
   "timezone": "",
   "title": "immich",
   "uid": "ZWWp3aa4k",
-  "version": 7,
+  "version": 3,
   "weekStart": ""
 }
