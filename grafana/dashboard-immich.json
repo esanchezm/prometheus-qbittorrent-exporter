@@ -450,7 +450,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "immich_server_info_diskUsagePercentage",
+          "expr": "100 - immich_server_info_diskUsagePercentage",
           "format": "time_series",
           "instant": true,
           "interval": "",
