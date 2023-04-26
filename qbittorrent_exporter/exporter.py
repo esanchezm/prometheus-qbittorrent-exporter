@@ -199,7 +199,7 @@ def main():
         logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
         sys.exit(1)
     if not config["port"]:
-        logger.error("No post specified, please set QBITTORRENT_PORT environment variable")
+        logger.error("No port specified, please set QBITTORRENT_PORT environment variable")
         sys.exit(1)
 
     # Register our custom collector
