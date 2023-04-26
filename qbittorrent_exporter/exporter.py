@@ -29,7 +29,6 @@ class QbittorrentMetricsCollector():
 
     def __init__(self, config):
         self.config = config
-        self.torrents = None
         self.client = Client(
             host=config["host"],
             port=config["port"],
@@ -38,12 +37,6 @@ class QbittorrentMetricsCollector():
         )
 
     def collect(self):
-        try:
-            self.torrents = self.client.torrents.info()
-        except Exception as e:
-            logger.error(f"Couldn't get server info: {e}")
-            return None
-
         metrics = self.get_qbittorrent_metrics()
 
         for metric in metrics:
@@ -75,11 +68,8 @@ class QbittorrentMetricsCollector():
         try:
             response = self.client.transfer.info
             version = self.client.app.version
-            self.torrents = self.client.torrents.info()
-        except APIConnectionError as e:
-            logger.error(f"Couldn't get server info: {e.error_message}")
-        except Exception:
-            logger.error(f"Couldn't get server info")
+        except Exception as e:
+            logger.error(f"Couldn't get server info: {e}")
 
         return [
             {
@@ -120,17 +110,15 @@ class QbittorrentMetricsCollector():
     def get_qbittorrent_torrent_tags_metrics(self):
         try:
             categories = self.client.torrent_categories.categories
+            torrents = self.client.torrents.info()
         except Exception as e:
-            logger.error(f"Couldn't fetch categories: {e}")
-            return []
-
-        if not self.torrents:
+            logger.error(f"Couldn't fetch torrent info: {e}")
             return []
 
         metrics = []
         categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
         for category in categories:
-            category_torrents = [t for t in self.torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
+            category_torrents = [t for t in torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
