@@ -19,12 +19,12 @@ logger = logging.getLogger()
 
 class QbittorrentMetricsCollector():
     TORRENT_STATUSES = [
-        "downloading",
-        "uploading",
-        "complete",
         "checking",
+        "complete",
+        "downloading",
         "errored",
         "paused",
+        "uploading",
     ]
 
     def __init__(self, config):
@@ -195,7 +195,6 @@ def main():
 
     # Register signal handler
     signal_handler = SignalHandler()
-
 
     if not config["host"]:
         logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
