@@ -1,101 +1,60 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "7.2.2"
-    },
-    {
-      "type": "panel",
-      "id": "grafana-piechart-panel",
-      "name": "Pie Chart",
-      "version": "1.6.1"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
         "type": "dashboard"
       }
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
-  "iteration": 1603732792335,
+  "id": 5,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [
             {
-              "from": "",
-              "id": 0,
-              "text": "Online",
-              "to": "",
-              "type": 1,
-              "value": "1"
+              "options": {
+                "0": {
+                  "text": "Offline"
+                },
+                "1": {
+                  "text": "Online"
+                }
+              },
+              "type": "value"
             },
             {
-              "from": "",
-              "id": 1,
-              "text": "Offline",
-              "to": "",
-              "type": 1,
-              "value": "0"
-            },
-            {
-              "from": "",
-              "id": 2,
-              "text": "Unknown",
-              "to": "",
-              "type": 1,
-              "value": "null"
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Unknown"
+                }
+              },
+              "type": "special"
             }
           ],
           "thresholds": {
@@ -139,9 +98,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${data_source}"
+          },
           "expr": "qbittorrent_up",
           "format": "time_series",
           "instant": false,
@@ -150,41 +113,31 @@
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Qbittorrent Status",
       "transformations": [],
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [
             {
-              "from": "",
-              "id": 0,
-              "text": "Connected",
-              "to": "",
-              "type": 1,
-              "value": "1"
-            },
-            {
-              "from": "",
-              "id": 1,
-              "text": "Disconnected",
-              "to": "",
-              "type": 1,
-              "value": "0"
-            },
-            {
-              "from": "",
-              "id": 2,
-              "text": "Firewalled",
-              "to": "",
-              "type": 1,
-              "value": "-1"
+              "options": {
+                "0": {
+                  "text": "Disconnected"
+                },
+                "1": {
+                  "text": "Connected"
+                },
+                "-1": {
+                  "text": "Firewalled"
+                }
+              },
+              "type": "value"
             }
           ],
           "thresholds": {
@@ -228,7 +181,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
           "expr": "qbittorrent_connected - qbittorrent_firewalled",
@@ -239,33 +192,28 @@
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Bittorrent network",
       "transformations": [],
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [
             {
-              "from": "",
-              "id": 1,
-              "text": "No DHT",
-              "to": "",
-              "type": 1,
-              "value": "0"
-            },
-            {
-              "from": "",
-              "id": 2,
-              "text": "Firewalled",
-              "to": "",
-              "type": 1,
-              "value": "-1"
+              "options": {
+                "0": {
+                  "text": "No DHT"
+                },
+                "-1": {
+                  "text": "Firewalled"
+                }
+              },
+              "type": "value"
             }
           ],
           "thresholds": {
@@ -309,7 +257,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
           "expr": "qbittorrent_dht_nodes",
@@ -319,17 +267,17 @@
           "refId": "B"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "DHT nodes",
       "transformations": [],
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -340,7 +288,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -365,26 +313,31 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
-          "expr": "increase(qbittorrent_dl_info_data_total[100y])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${data_source}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (app) (qbittorrent_dl_info_data_total)",
           "instant": false,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": " ",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Data downloaded",
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -395,7 +348,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -420,26 +373,31 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
-          "expr": "increase(qbittorrent_up_info_data_total[100y])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${data_source}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (app) (qbittorrent_up_info_data_total)",
           "instant": false,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": " ",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Data uploaded",
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -475,26 +433,31 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
-          "expr": "increase(qbittorrent_up_info_data_total[100y]) / increase(qbittorrent_dl_info_data_total[100y])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${data_source}"
+          },
+          "editorMode": "code",
+          "expr": "(sum by (app) (qbittorrent_up_info_data_total)) / (sum by (app) (qbittorrent_dl_info_data_total))",
           "instant": false,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{label_name}}",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Accumulated ratio",
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "decimals": 1,
           "mappings": [],
           "max": 48000000,
@@ -535,36 +498,28 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
-          "expr": "rate(qbittorrent_dl_info_data_total[1m])",
+          "expr": "rate(qbittorrent_dl_info_data_total[2m])",
           "instant": false,
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Download speed",
       "type": "gauge"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
+      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "decimals": 1,
-          "mappings": [
-            {
-              "from": "",
-              "id": 1,
-              "text": "",
-              "to": "",
-              "type": 1
-            }
-          ],
+          "mappings": [],
           "max": 18000000,
           "min": 0,
           "thresholds": {
@@ -603,10 +558,10 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "targets": [
         {
-          "expr": "rate(qbittorrent_up_info_data_total[1m])",
+          "expr": "rate(qbittorrent_up_info_data_total[2m])",
           "hide": false,
           "instant": false,
           "interval": "",
@@ -614,8 +569,6 @@
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Upload speed",
       "type": "gauge"
     },
@@ -624,12 +577,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -657,7 +607,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -667,23 +617,21 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(qbittorrent_dl_info_data_total[1m])",
+          "expr": "rate(qbittorrent_dl_info_data_total[2m])",
           "interval": "",
           "legendFormat": "Download",
           "refId": "A"
         },
         {
-          "expr": "rate(qbittorrent_up_info_data_total[1m])",
+          "expr": "rate(qbittorrent_up_info_data_total[2m])",
           "interval": "",
           "legendFormat": "Upload",
           "refId": "B"
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
-      "title": "Transfer ratio",
+      "title": "Transfer Rates",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -691,47 +639,34 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "binBps",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "binBps",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
       "aliasColors": {},
       "bars": true,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -743,7 +678,6 @@
       },
       "hiddenSeries": false,
       "id": 11,
-      "interval": null,
       "legend": {
         "alignAsTable": true,
         "avg": false,
@@ -763,7 +697,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.2",
+      "pluginVersion": "9.4.3",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -780,9 +714,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Torrents by status",
       "tooltip": {
         "shared": true,
@@ -791,65 +723,47 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "aliasColors": {},
-      "breakPoint": "50%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${data_source}"
       },
-      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": null,
-            "filterable": false
+          "color": {
+            "mode": "palette-classic"
           },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": []
         },
         "overrides": []
       },
-      "fontSize": "80%",
-      "format": "short",
       "gridPos": {
         "h": 10,
         "w": 10,
@@ -857,19 +771,27 @@
         "y": 14
       },
       "id": 12,
-      "interval": null,
-      "legend": {
-        "percentage": true,
-        "show": true,
-        "sideWidth": null,
-        "values": true
-      },
-      "legendType": "Right side",
       "links": [],
-      "nullPointMode": "connected",
-      "pieType": "donut",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "pluginVersion": "7.2.0",
-      "strokeWidth": 1,
       "targets": [
         {
           "expr": "sum(qbittorrent_torrents_count{category=~\"${categories}\",status!=\"complete\"}) by (category)",
@@ -878,23 +800,28 @@
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Torrents by categories",
-      "type": "grafana-piechart-panel",
-      "valueName": "current"
+      "type": "piechart"
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 26,
+  "refresh": "10s",
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
         "allValue": ".*",
-        "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${data_source}"
+        },
         "definition": "label_values(qbittorrent_torrents_count, category)",
         "hide": 0,
         "includeAll": true,
@@ -902,26 +829,48 @@
         "multi": true,
         "name": "categories",
         "options": [],
-        "query": "label_values(qbittorrent_torrents_count, category)",
+        "query": {
+          "query": "label_values(qbittorrent_torrents_count, category)",
+          "refId": "Prometheus-categories-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "data_source",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Qbittorrent",
   "uid": "eKyTETFMk",
-  "version": 40
+  "version": 1,
+  "weekStart": ""
 }
