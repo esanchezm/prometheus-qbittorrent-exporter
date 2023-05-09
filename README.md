@@ -34,15 +34,16 @@ Add this to your prometheus.yml
 ```
 The application reads configuration using environment variables:
 
-| Environment variable | Default       | Description |
-| -------------------- | ------------- | ----------- |
-| `QBITTORRENT_HOST`   |               | qbittorrent server hostname |
-| `QBITTORRENT_PORT`   |               | qbittorrent server port |
-| `QBITTORRENT_USER`   | `""`          | qbittorrent username |
-| `QBITTORRENT_PASS`   | `""`          | qbittorrent password |
-| `EXPORTER_PORT`      | `8000`        | Exporter listening port |
-| `EXPORTER_LOG_LEVEL` | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `METRICS_PREFIX`     | `qbittorrent` | Prefix to add to all the metrics |
+| Environment variable       | Default       | Description |
+| -------------------------- | ------------- | ----------- |
+| `QBITTORRENT_HOST`         |               | qbittorrent server hostname |
+| `QBITTORRENT_PORT`         |               | qbittorrent server port |
+| `QBITTORRENT_USER`         | `""`          | qbittorrent username |
+| `QBITTORRENT_PASS`         | `""`          | qbittorrent password |
+| `EXPORTER_PORT`            | `8000`        | Exporter listening port |
+| `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `METRICS_PREFIX`           | `qbittorrent` | Prefix to add to all the metrics |
+| `VERIFY_WEBUI_CERTIFICATE` | `True`        | Whether to verify SSL certificate when connecting to the qbittorrent server. Any other value but `True` will disable the verification |
 
 
 ## Metrics

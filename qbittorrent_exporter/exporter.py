@@ -34,6 +34,7 @@ class QbittorrentMetricsCollector():
             port=config["port"],
             username=config["username"],
             password=config["password"],
+            VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"]
         )
 
     def collect(self):
@@ -187,6 +188,7 @@ def main():
         "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
         "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
+        "verify_webui_certificate": get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True",
     }
     # set level once config has been loaded
     logger.setLevel(config["log_level"])
