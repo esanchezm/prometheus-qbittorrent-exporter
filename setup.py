@@ -16,8 +16,8 @@ setup(
     download_url='https://github.com/esanchezm/prometheus-qbittorrent-exporter/archive/1.3.0.tar.gz',
     keywords=['prometheus', 'qbittorrent'],
     classifiers=[],
-    python_requires='>=3',
-    install_requires=['attrdict==2.0.1', 'qbittorrent-api==2022.1.27', 'prometheus_client==0.12.0 ', 'python-json-logger==2.0.2'],
+    python_requires='>=3,<3.10',
+    install_requires=['attrdict==2.0.1', 'qbittorrent-api==2023.4.47', 'prometheus_client==0.16.0', 'python-json-logger==2.0.2'],
     entry_points={
         'console_scripts': [
             'qbittorrent-exporter=qbittorrent_exporter.exporter:main',
