@@ -215,15 +215,19 @@ class ImmichMetricsCollector:
         server_version_endpoint = "/api/server-info/version"
         response_server_version = ""
 
-        try:
+        for i in range(0, 360):
+            while True:
+                try:
 
-            response_server_version = requests.request(
-                "GET",
-                self.combine_url(server_version_endpoint),
-                headers={'Accept': 'application/json'}
-            )
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Couldn't get server version: {e}")
+                    response_server_version = requests.request(
+                        "GET",
+                        self.combine_url(server_version_endpoint),
+                        headers={'Accept': 'application/json'}
+                    )
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"Couldn't get server version: {e}")
+                    continue
+                break
 
         server_version_number = (str(response_server_version.json()["major"]) + "." +
                                  str(response_server_version.json()["minor"]) + "." +
