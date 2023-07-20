@@ -29,10 +29,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -78,10 +75,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "immich_server_info_version_number",
@@ -95,10 +89,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -145,10 +136,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_stats_user_count",
           "legendFormat": "__auto",
@@ -160,10 +148,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -207,10 +192,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "sum(immich_server_stats_usage_by_users)",
           "legendFormat": "__auto",
@@ -222,10 +204,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -269,10 +248,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_info_totalDiskSize",
           "legendFormat": "__auto",
@@ -284,10 +260,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -331,10 +304,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_info_diskUse",
           "legendFormat": "__auto",
@@ -346,10 +316,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -393,10 +360,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "100 - immich_server_info_diskUsagePercentage",
@@ -412,10 +376,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -460,10 +421,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "increase(immich_server_stats_usage_growth[24h])",
@@ -478,10 +436,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -526,10 +481,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_useage_growth[7d])",
           "legendFormat": "__auto",
@@ -542,10 +494,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -594,10 +543,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_stats_usage_by_users",
           "legendFormat": "{{firstName}}",
@@ -609,10 +555,7 @@
       "type": "piechart"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -657,10 +600,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_usage_growth[30h])",
           "legendFormat": "__auto",
@@ -673,10 +613,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -721,10 +658,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_useage_growth[365d])",
           "legendFormat": "__auto",
@@ -737,10 +671,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -782,10 +713,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[24h])",
           "legendFormat": "__auto",
@@ -798,10 +726,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -843,10 +768,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[7d])",
           "legendFormat": "__auto",
@@ -859,10 +781,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -911,10 +830,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "immich_server_stats_photos_by_users",
@@ -928,10 +844,7 @@
       "type": "piechart"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -975,10 +888,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[4w])",
           "legendFormat": "__auto",
@@ -991,10 +901,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1038,10 +945,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_photos_growth[52w])",
           "legendFormat": "__auto",
@@ -1054,10 +958,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "description": "amount of photos over time",
       "fieldConfig": {
         "defaults": {
@@ -1133,10 +1034,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_stats_photos_by_users",
           "legendFormat": "{{firstName}}",
@@ -1149,10 +1047,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1196,10 +1091,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[1d])",
           "legendFormat": "__auto",
@@ -1212,10 +1104,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1259,10 +1148,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[1w])",
           "legendFormat": "__auto",
@@ -1275,10 +1161,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1327,10 +1210,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_stats_videos_by_users",
           "legendFormat": "{{firstName}}",
@@ -1342,10 +1222,7 @@
       "type": "piechart"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1389,10 +1266,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[4w])\r\n",
           "legendFormat": "__auto",
@@ -1405,10 +1279,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1452,10 +1323,7 @@
       "pluginVersion": "9.4.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "increase(immich_server_stats_videos_growth[52w])\r\n",
           "legendFormat": "__auto",
@@ -1468,10 +1336,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "o-nLTb0Vz"
-      },
+      "datasource": "Prometheus",
       "description": "amount of videos over time",
       "fieldConfig": {
         "defaults": {
@@ -1545,10 +1410,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "o-nLTb0Vz"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "immich_server_stats_videos_by_users",
           "legendFormat": "{{firstName}}",

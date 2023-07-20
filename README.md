@@ -24,7 +24,7 @@ docker run -e IMMICH_PORT=8010 -e IMMICH_HOST=192.168.178.1 -p 8000:8000 friendl
 ```
 Add this to your prometheus.yml
 ```
-  - job_name: "qbittorrent_exporter"
+  - job_name: "immich_exporter"
     static_configs:
         - targets: ['yourimmichexporter:port']
 ```
