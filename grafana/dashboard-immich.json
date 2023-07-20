@@ -199,7 +199,7 @@
           "refId": "A"
         }
       ],
-      "title": "user count",
+      "title": "User count",
       "type": "stat"
     },
     {
@@ -261,7 +261,7 @@
           "refId": "A"
         }
       ],
-      "title": "disk space used by Immich",
+      "title": "Disk space used by Immich",
       "type": "stat"
     },
     {
@@ -323,7 +323,7 @@
           "refId": "A"
         }
       ],
-      "title": "total disk size",
+      "title": "Total disk size",
       "type": "stat"
     },
     {
@@ -385,7 +385,7 @@
           "refId": "A"
         }
       ],
-      "title": "total disk size usage",
+      "title": "Total disk size usage",
       "type": "stat"
     },
     {
@@ -451,7 +451,7 @@
           "refId": "A"
         }
       ],
-      "title": "remaining disk size",
+      "title": "Remaining disk size",
       "type": "stat"
     },
     {
@@ -484,7 +484,7 @@
         "x": 0,
         "y": 3
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 24,
       "options": {
         "colorMode": "background",
@@ -509,7 +509,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "increase(immich_server_stats_usage_growth[24h])",
+          "expr": "increase(immich_server_stats_usage_growth[1d])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -550,7 +550,7 @@
         "x": 6,
         "y": 3
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 26,
       "options": {
         "colorMode": "background",
@@ -574,13 +574,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_useage_growth[7d])",
+          "expr": "increase(immich_server_stats_usage_growth[1w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/w",
+      "timeFrom": "1w",
       "title": "Weekly data growth",
       "type": "stat"
     },
@@ -648,7 +648,7 @@
           "refId": "A"
         }
       ],
-      "title": "disk usage by user",
+      "title": "Disk usage by user",
       "type": "piechart"
     },
     {
@@ -681,7 +681,7 @@
         "x": 0,
         "y": 7
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 28,
       "options": {
         "colorMode": "background",
@@ -705,13 +705,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_usage_growth[30h])",
+          "expr": "increase(immich_server_stats_usage_growth[4w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/M",
+      "timeFrom": "1M",
       "title": "Monthly data growth",
       "type": "stat"
     },
@@ -745,7 +745,7 @@
         "x": 6,
         "y": 7
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 30,
       "options": {
         "colorMode": "background",
@@ -769,14 +769,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_useage_growth[365d])",
+          "expr": "increase(immich_server_stats_usage_growth[1y])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/y",
-      "title": "Yealy data growth",
+      "timeFrom": "1y",
+      "title": "Yearly data growth",
       "type": "stat"
     },
     {
@@ -837,7 +837,7 @@
         }
       ],
       "timeFrom": "now/d",
-      "title": "daily photos growth",
+      "title": "Daily photos growth",
       "type": "stat"
     },
     {
@@ -897,8 +897,8 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/w",
-      "title": "weekly photos growth",
+      "timeFrom": "1w",
+      "title": "Weekly photos growth",
       "type": "stat"
     },
     {
@@ -1029,7 +1029,7 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/M",
+      "timeFrom": "1M",
       "title": "Monthly photos growth",
       "type": "stat"
     },
@@ -1086,14 +1086,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_photos_growth[52w])",
+          "expr": "increase(immich_server_stats_photos_growth[1y])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/y",
-      "title": "yearly photos growth",
+      "timeFrom": "1y",
+      "title": "Yearly photos growth",
       "type": "stat"
     },
     {
@@ -1160,7 +1160,7 @@
         "x": 0,
         "y": 19
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 22,
       "options": {
         "legend": {
@@ -1187,8 +1187,103 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/M",
-      "title": "Monthly Photos Growth",
+      "timeFrom": "1M",
+      "title": "Photos Growth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "amount of photos over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "right",
+            "axisSoftMin": 9000,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "hideTimeOverride": false,
+      "id": 47,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "immich_server_stats_photos_by_users",
+          "legendFormat": "{{firstName}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "1y",
+      "title": "Photos Growth",
       "type": "timeseries"
     },
     {
@@ -1206,8 +1301,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1218,7 +1312,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 26
+        "y": 33
       },
       "hideTimeOverride": true,
       "id": 42,
@@ -1251,7 +1345,7 @@
         }
       ],
       "timeFrom": "now/d",
-      "title": "daily video growth",
+      "title": "Daily video growth",
       "type": "stat"
     },
     {
@@ -1269,8 +1363,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1281,7 +1374,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 26
+        "y": 33
       },
       "hideTimeOverride": true,
       "id": 40,
@@ -1313,8 +1406,8 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/w",
-      "title": "weekly videos growth",
+      "timeFrom": "1w",
+      "title": "Weekly videos growth",
       "type": "stat"
     },
     {
@@ -1342,7 +1435,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 33
       },
       "id": 6,
       "options": {
@@ -1381,7 +1474,7 @@
           "refId": "A"
         }
       ],
-      "title": "videos",
+      "title": "Videos",
       "type": "piechart"
     },
     {
@@ -1410,7 +1503,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 30
+        "y": 37
       },
       "hideTimeOverride": true,
       "id": 44,
@@ -1428,7 +1521,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.3",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
           "datasource": {
@@ -1442,7 +1535,7 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/M",
+      "timeFrom": "1M",
       "title": "Monthly videos growth",
       "type": "stat"
     },
@@ -1472,7 +1565,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 30
+        "y": 37
       },
       "hideTimeOverride": true,
       "id": 46,
@@ -1490,7 +1583,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.3",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
           "datasource": {
@@ -1498,14 +1591,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_videos_growth[52w])\r\n",
+          "expr": "increase(immich_server_stats_videos_growth[1y])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/y",
-      "title": "Panel Title",
+      "timeFrom": "1y",
+      "title": "Yearly video growth",
       "type": "stat"
     },
     {
@@ -1568,7 +1661,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 41
       },
       "id": 20,
       "options": {
@@ -1596,7 +1689,99 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/M",
+      "timeFrom": "1M",
+      "title": "Videos growth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "amount of videos over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "right",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "id": 48,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "immich_server_stats_videos_by_users",
+          "legendFormat": "{{firstName}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "1y",
       "title": "Videos growth",
       "type": "timeseries"
     }
@@ -1617,6 +1802,6 @@
   "timezone": "",
   "title": "immich",
   "uid": "ZWWp3aa4k",
-  "version": 1,
+  "version": 9,
   "weekStart": ""
 }
