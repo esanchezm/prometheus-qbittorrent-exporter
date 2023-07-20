@@ -49,7 +49,6 @@ class ImmichMetricsCollector:
 
     def get_immich_users_stat_growth(self):
 
-
         try:
             endpoint_user_stats = "/api/server-info/stats"
             response_user_stats = requests.request(
@@ -101,7 +100,6 @@ class ImmichMetricsCollector:
 
     @property
     def get_immich_users_stat(self):
-
 
         global response_user_stats
         try:
@@ -179,7 +177,8 @@ class ImmichMetricsCollector:
             response_server_info = requests.request(
                 "GET",
                 self.combine_url(endpoint_server_info),
-                headers={'Accept': 'application/json'}
+                headers={'Accept': 'application/json',
+                         "x-api-key": self.config["token"]}
             )
         except requests.exceptions.RequestException as e:
             logger.error(f"Couldn't get server version: {e}")
@@ -193,7 +192,7 @@ class ImmichMetricsCollector:
             {
                 "name": f"{self.config['metrics_prefix']}_server_info_totalDiskSize",
                 "value": (response_server_info.json()["diskSizeRaw"]),
-                "help": "tota disk size",
+                "help": "total disk size",
                 # "type": "counter"
             },
             {
@@ -222,7 +221,8 @@ class ImmichMetricsCollector:
                     response_server_version = requests.request(
                         "GET",
                         self.combine_url(server_version_endpoint),
-                        headers={'Accept': 'application/json'}
+                        headers={'Accept': 'application/json',
+                                 "x-api-key": self.config["token"]}
                     )
                 except requests.exceptions.RequestException as e:
                     logger.error(f"Couldn't get server version: {e}")
