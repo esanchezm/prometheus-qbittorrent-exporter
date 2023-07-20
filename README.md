@@ -5,26 +5,14 @@ A prometheus exporter for Immich. Get metrics from a server and offers them in a
 
 ## How to use it
 
-You can install this exporter with the following command:
-
-```bash
-pip3 install prometheus-qbittorrent-exporter
-```
-
-Then you can run it with
+Here is an example docker run command 
 
 ```
-immich-exporter
-```
-
-Another option is to run it in a docker container. Here is an example docker run command 
-
-```
-docker run -e IMMICH_PORT=8010 -e IMMICH_HOST=192.168.178.1 -p 8000:8000 friendlyfriend/prometheus-immich-exporter
+docker run -e IMMICH_PORT=8080 -e IMMICH_HOST=192.168.178.1 -e IMMICH_API_TOKEN=TOKEN -p 8000:8000 friendlyfriend/prometheus-immich-exporter
 ```
 Add this to your prometheus.yml
 ```
-  - job_name: "immich_exporter"
+  - job_name: "Immich_exporter"
     static_configs:
         - targets: ['yourimmichexporter:port']
 ```
@@ -32,8 +20,9 @@ The application reads configuration using environment variables:
 
 | Environment variable | Default  | Description                                        |
 |----------------------|----------|----------------------------------------------------|
-| `IMMICH_HOST`        |          | immich server hostname                            |
-| `IMMICH_PORT`        |          | immich server port                                 |
+| `IMMICH_HOST`        |          | Immich proxy url                                   |
+| `IMMICH_PORT`        | `8080`   | Immich proxy port                                  |
+| `IMMICH_API_TOKEN`   |          | Immich API token, created from Immich dashboard    |
 | `EXPORTER_PORT`      | `8000`   | Exporter listening port                            |
 | `EXPORTER_LOG_LEVEL` | `INFO`   | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 | `METRICS_PREFIX`     | `immich` | Prefix to add to all the metrics                   |

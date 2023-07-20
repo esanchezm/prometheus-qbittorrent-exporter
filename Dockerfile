@@ -14,7 +14,7 @@ RUN pip3 install .
 
 ENV IMMICH_API_TOKEN=""
 ENV IMMICH_HOST=""
-ENV IMMICH_PORT=""
+ENV IMMICH_PORT="8080"
 #has to be EXPORT_PORT 8000 or else it does not work, same applies to the env file
 ENV EXPORTER_PORT="8000"
 ENV EXPORTER_LOG_LEVEL="INFO"
