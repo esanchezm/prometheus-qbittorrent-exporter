@@ -18,11 +18,11 @@
   <PostArgs/>
   <CPUset/>
   <DateInstalled>1678876858</DateInstalled>
-  <DonateText>If I made your day a little bit brighter, consider donating.</DonateText>
+  <DonateText>If you like my work, consider supporting me.</DonateText>
   <DonateLink>https://www.paypal.com/donate/?hosted_button_id=DPDKED3T3BFV8</DonateLink>
   <Requires/>
   <Config Name="Host Port 1" Target="8000" Default="8028" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8028</Config>
   <Config Name="immich api token" Target="IMMICH_API_TOKEN" Default="" Mode="" Description="You need to log into to your immich admin account&#13;&#10;and create an api token in your settings" Type="Variable" Display="always" Required="false" Mask="false"/>
-  <Config Name="immich_host" Target="IMMICH_HOST" Default="" Mode="" Description="example: 192.168.178.2" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="immich_host" Target="IMMICH_HOST" Default="" Mode="" Description="internal ip of you rimmich instance - example: 192.168.178.2" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="immich port" Target="IMMICH_PORT" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false"/>
 </Container>
