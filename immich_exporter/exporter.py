@@ -39,6 +39,7 @@ class ImmichMetricsCollector:
             yield prom_metric
 
     def get_immich_metrics(self):
+
         metrics = []
         metrics.extend(self.get_immich_server_version_number())
         metrics.extend(self.get_immich_server_info())
@@ -46,6 +47,7 @@ class ImmichMetricsCollector:
         metrics.extend(self.get_immich_users_stat_growth())
 
         return metrics
+
 
     def get_immich_users_stat_growth(self):
 
@@ -210,25 +212,29 @@ class ImmichMetricsCollector:
         ]
 
     def get_immich_server_version_number(self):
+        # Requesting immich_server_number serves two purposes. As the name says it returns the version number
+        #   1. get version the full server version number
+        #   2. check if immich api key is correct
+        # throwing connectionRefused exception usually means that immich isn't running
 
         server_version_endpoint = "/api/server-info/version"
         response_server_version = ""
 
-        for i in range(0, 360):
-            while True:
-                try:
+        while True:
+            try:
 
-                    response_server_version = requests.request(
-                        "GET",
-                        self.combine_url(server_version_endpoint),
-                        headers={'Accept': 'application/json',
-                                 "x-api-key": self.config["token"]}
-                    )
-                except requests.exceptions.RequestException as e:
-                    logger.error(f"Couldn't get server version: {e}")
-                    continue
-                break
+                response_server_version = requests.request(
+                    "GET",
+                    self.combine_url(server_version_endpoint),
+                    headers={'Accept': 'application/json',
+                             "x-api-key": self.config["token"]}
+                )
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Couldn't get server version")
+                continue
+            break
 
+        logger.info(f"immich is up and running.")
         server_version_number = (str(response_server_version.json()["major"]) + "." +
                                  str(response_server_version.json()["minor"]) + "." +
                                  str(response_server_version.json()["patch"])
@@ -253,6 +259,7 @@ class ImmichMetricsCollector:
         return combined_url
 
 
+# test
 class SignalHandler():
     def __init__(self):
         self.shutdownCount = 0
@@ -283,6 +290,53 @@ def get_config_value(key, default=""):
 
     return os.environ.get(key, default)
 
+
+def check_server_up(immichHost, immichPort):
+
+    #
+    counter = 0
+
+
+    while True:
+        counter = counter + 1
+        try:
+
+            requests.request(
+                "GET",
+                "http://" + immichHost + ":" + immichPort + "/api/server-info/ping",
+                headers={'Accept': 'application/json'}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"CONNECTION ERROR. Cannot reach immich at " + immichHost + ":" + immichPort + "."
+                         f"Is immich up and running?")
+            if 0 <= counter <= 60:
+                time.sleep(1)
+            elif 11 <= counter <= 300:
+                time.sleep(15)
+            elif counter > 300:
+                time.sleep(60)
+            continue
+        break
+    logger.info(f"Found immich up and running at " + immichHost + ":" + immichPort + ".")
+    time.sleep(5)
+
+def check_immich_api_key(immichHost, immichPort, immichApiKey):
+
+    while True:
+        try:
+
+            response_server_version = requests.request(
+                "GET",
+                "https://"+immichHost+":"+immichPort+"/api/server-info/version",
+                headers={'Accept': 'application/json',
+                         "x-api-key": immichApiKey}
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"CONNECTION ERROR. Is the api key correct? You may have to delete the entry and copypaste it anew.")
+            time.sleep(3)
+            continue
+        break
+        logger.error(f"Immich API key matches")
 
 def main():
     # Init logger so it can be used
@@ -321,15 +375,21 @@ def main():
 
     # Register our custom collector
     logger.info("Exporter is starting up")
+
+    check_server_up(config["immich_host"], config["immich_port"])
+    check_immich_api_key(config["immich_host"], config["immich_port"], config["token"])
     REGISTRY.register(ImmichMetricsCollector(config))
 
     # Start server
     start_http_server(config["exporter_port"])
+
     logger.info(
         f"Exporter listening on port {config['exporter_port']}"
     )
+
 
     while not signal_handler.is_shutting_down():
         time.sleep(1)
 
     logger.info("Exporter has shutdown")
+
