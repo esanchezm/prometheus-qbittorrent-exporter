@@ -234,7 +234,6 @@ class ImmichMetricsCollector:
                 continue
             break
 
-        logger.info(f"immich is up and running.")
         server_version_number = (str(response_server_version.json()["major"]) + "." +
                                  str(response_server_version.json()["minor"]) + "." +
                                  str(response_server_version.json()["patch"])
@@ -318,25 +317,30 @@ def check_server_up(immichHost, immichPort):
             continue
         break
     logger.info(f"Found immich up and running at " + immichHost + ":" + immichPort + ".")
-    time.sleep(5)
+    logger.info(f"Attempting to connect")
+    time.sleep(1)
+    logger.info(".")
+
 
 def check_immich_api_key(immichHost, immichPort, immichApiKey):
 
     while True:
         try:
 
-            response_server_version = requests.request(
+            requests.request(
                 "GET",
-                "https://"+immichHost+":"+immichPort+"/api/server-info/version",
+                "http://"+immichHost+":"+immichPort+"/api/server-info/",
                 headers={'Accept': 'application/json',
                          "x-api-key": immichApiKey}
             )
         except requests.exceptions.RequestException as e:
-            logger.error(f"CONNECTION ERROR. Is the api key correct? You may have to delete the entry and copypaste it anew.")
+            logger.error(f"CONNECTION ERROR. Possible API key error")
+            logger.error({e})
             time.sleep(3)
             continue
+        logger.info(f"Connected to immich successfully")
         break
-        logger.error(f"Immich API key matches")
+
 
 def main():
     # Init logger so it can be used
