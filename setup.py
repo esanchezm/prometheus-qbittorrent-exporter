@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name='prometheus-immich-exporter',
     packages=['immich_exporter'],
-    version='1.0.5',
+    version='1.0.6',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='Prometheus exporter for immich',
