@@ -18,7 +18,7 @@
   <PostArgs/>
   <CPUset/>
   <DateInstalled>1678876858</DateInstalled>
-  <DonateText>If I made your day a little bit brighter, consider donating.</DonateText>
+  <DonateText>If you like my work, consider supporting me.</DonateText>
   <DonateLink>https://www.paypal.com/donate/?hosted_button_id=DPDKED3T3BFV8</DonateLink>
   <Requires/>
   <Config Name="Immich_exporter_port" Target="8000" Default="8000" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8000</Config>
