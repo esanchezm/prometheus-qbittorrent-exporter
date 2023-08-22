@@ -21,8 +21,8 @@
   <DonateText>If you like my work, consider supporting me.</DonateText>
   <DonateLink>https://www.paypal.com/donate/?hosted_button_id=DPDKED3T3BFV8</DonateLink>
   <Requires/>
-  <Config Name="Host Port 1" Target="8000" Default="8028" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8028</Config>
+  <Config Name="Immich_exporter_port" Target="8000" Default="8000" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8000</Config>
   <Config Name="immich api token" Target="IMMICH_API_TOKEN" Default="" Mode="" Description="You need to log into to your immich admin account&#13;&#10;and create an api token in your settings" Type="Variable" Display="always" Required="false" Mask="false"/>
-  <Config Name="immich_host" Target="IMMICH_HOST" Default="" Mode="" Description="internal ip of you rimmich instance - example: 192.168.178.2" Type="Variable" Display="always" Required="false" Mask="false"/>
-  <Config Name="immich port" Target="IMMICH_PORT" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="immich_host" Target="IMMICH_HOST" Default="" Mode="" Description="Address to Immich_proxy, example: 192.168.178.2" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="immich port" Target="IMMICH_PORT" Default="8080" Mode="" Description="Port for Immich_proxy" Type="Variable" Display="always" Required="false" Mask="false"/>
 </Container>
