@@ -9,6 +9,7 @@ from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
 from pythonjsonlogger import jsonlogger
+from enum import StrEnum, auto
 
 
 # Enable dumps on stderr in case of segfault
@@ -16,16 +17,15 @@ faulthandler.enable()
 logger = logging.getLogger()
 
 
-class QbittorrentMetricsCollector:
-    TORRENT_STATUSES = [
-        "checking",
-        "complete",
-        "downloading",
-        "errored",
-        "paused",
-        "uploading",
-    ]
+class TorrentStatus(StrEnum):
+    CHECKING = auto()
+    COMPLETE = auto()
+    ERRORED = auto()
+    PAUSED = auto()
+    UPLOADING = auto()
 
+
+class QbittorrentMetricsCollector:
     def __init__(self, config):
         self.config = config
         self.client = Client(
@@ -125,8 +125,8 @@ class QbittorrentMetricsCollector:
                 or (category == "Uncategorized" and t["category"] == "")
             ]
 
-            for status in self.TORRENT_STATUSES:
-                status_prop = f"is_{status}"
+            for status in TorrentStatus:
+                status_prop = f"is_{status.value}"
                 status_torrents = [
                     t
                     for t in category_torrents
@@ -139,12 +139,12 @@ class QbittorrentMetricsCollector:
                         "name": f"{self.config['metrics_prefix']}_torrents_count",
                         "value": len(status_torrents),
                         "labels": {
-                            "status": status,
+                            "status": status.value,
                             "category": category,
                         },
                         "help": (
-                            f"Number of torrents in status {status} under category"
-                            f" {category}"
+                            f"Number of torrents in status {status.value} under"
+                            f" category {category}"
                         ),
                     }
                 )
