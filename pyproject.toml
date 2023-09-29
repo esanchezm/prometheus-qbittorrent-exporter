@@ -14,6 +14,7 @@ dependencies = [
 requires-python = ">=3.11"
 readme = "README.md"
 keywords = ["prometheus", "qbittorrent"]
+license = "GPL-3.0"
 classifiers = []
 
 [project.urls]
