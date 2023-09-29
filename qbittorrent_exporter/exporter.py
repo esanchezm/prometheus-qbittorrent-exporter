@@ -10,7 +10,8 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGIS
 import logging
 from pythonjsonlogger import jsonlogger
 from enum import StrEnum, auto
-
+from typing import Iterable, Any
+from dataclasses import dataclass, field
 
 # Enable dumps on stderr in case of segfault
 faulthandler.enable()
@@ -25,8 +26,22 @@ class TorrentStatus(StrEnum):
     UPLOADING = auto()
 
 
+class MetricType(StrEnum):
+    GAUGE = auto()
+    COUNTER = auto()
+
+
+@dataclass
+class Metric:
+    name: str
+    value: int | float | bool
+    labels: dict[str, str] = field(default_factory={})
+    help_text: str = ""
+    metric_type: MetricType = MetricType.GAUGE
+
+
 class QbittorrentMetricsCollector:
-    def __init__(self, config):
+    def __init__(self, config: dict[str, str | int | bool]) -> None:
         self.config = config
         self.client = Client(
             host=config["host"],
@@ -36,33 +51,31 @@ class QbittorrentMetricsCollector:
             VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
         )
 
-    def collect(self):
-        metrics = self.get_qbittorrent_metrics()
+    def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
+        metrics: list[Metric] = self.get_qbittorrent_metrics()
 
         for metric in metrics:
-            name = metric["name"]
-            value = metric["value"]
-            help_text = metric.get("help", "")
-            labels = metric.get("labels", {})
-            metric_type = metric.get("type", "gauge")
-
-            if metric_type == "counter":
-                prom_metric = CounterMetricFamily(name, help_text, labels=labels.keys())
+            if metric.metric_type == MetricType.COUNTER:
+                prom_metric = CounterMetricFamily(
+                    metric.name, metric.help_text, labels=metric.labels.keys()
+                )
             else:
-                prom_metric = GaugeMetricFamily(name, help_text, labels=labels.keys())
-            prom_metric.add_metric(value=value, labels=labels.values())
+                prom_metric = GaugeMetricFamily(
+                    metric.name, metric.help_text, labels=metric.labels.keys()
+                )
+            prom_metric.add_metric(value=metric.value, labels=metric.labels.values())
             yield prom_metric
 
-    def get_qbittorrent_metrics(self):
-        metrics = []
-        metrics.extend(self.get_qbittorrent_status_metrics())
-        metrics.extend(self.get_qbittorrent_torrent_tags_metrics())
+    def get_qbittorrent_metrics(self) -> list[Metric]:
+        metrics: list[Metric] = []
+        metrics.extend(self._get_qbittorrent_status_metrics())
+        metrics.extend(self._get_qbittorrent_torrent_tags_metrics())
 
         return metrics
 
-    def get_qbittorrent_status_metrics(self):
-        response = {}
-        version = ""
+    def _get_qbittorrent_status_metrics(self) -> list[dict]:
+        response: dict[str, Any] = {}
+        version: str = ""
 
         # Fetch data from API
         try:
@@ -72,42 +85,47 @@ class QbittorrentMetricsCollector:
             logger.error(f"Couldn't get server info: {e}")
 
         return [
-            {
-                "name": f"{self.config['metrics_prefix']}_up",
-                "value": bool(response),
-                "labels": {"version": version},
-                "help": "Whether server is reachable",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_connected",
-                "value": response.get("connection_status", "") == "connected",
-                "help": "Whether server is currently connected",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_firewalled",
-                "value": response.get("connection_status", "") == "firewalled",
-                "help": "Whether server is behind a firewall",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_dht_nodes",
-                "value": response.get("dht_nodes", 0),
-                "help": "Number of connected DHT nodes",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_dl_info_data",
-                "value": response.get("dl_info_data", 0),
-                "help": "Data downloaded this session (bytes)",
-                "type": "counter",
-            },
-            {
-                "name": f"{self.config['metrics_prefix']}_up_info_data",
-                "value": response.get("up_info_data", 0),
-                "help": "Data uploaded this session (bytes)",
-                "type": "counter",
-            },
+            Metric(
+                name=f"{self.config['metrics_prefix']}_up",
+                value=bool(response),
+                labels={"version": version},
+                help_text="Whether server is reachable",
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_connected",
+                value=response.get("connection_status", "") == "connected",
+                labels={},  # no labels in the example
+                help_text="Whether server is currently connected",
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_firewalled",
+                value=response.get("connection_status", "") == "firewalled",
+                labels={},  # no labels in the example
+                help_text="Whether server is behind a firewall",
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_dht_nodes",
+                value=response.get("dht_nodes", 0),
+                labels={},  # no labels in the example
+                help_text="Number of connected DHT nodes",
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_dl_info_data",
+                value=response.get("dl_info_data", 0),
+                labels={},  # no labels in the example
+                help_text="Data downloaded this session (bytes)",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_up_info_data",
+                value=response.get("up_info_data", 0),
+                labels={},  # no labels in the example
+                help_text="Data uploaded this session (bytes)",
+                metric_type=MetricType.COUNTER,
+            ),
         ]
 
-    def get_qbittorrent_torrent_tags_metrics(self):
+    def _get_qbittorrent_torrent_tags_metrics(self) -> list[Metric]:
         try:
             categories = self.client.torrent_categories.categories
             torrents = self.client.torrents.info()
@@ -115,7 +133,7 @@ class QbittorrentMetricsCollector:
             logger.error(f"Couldn't fetch torrent info: {e}")
             return []
 
-        metrics = []
+        metrics: list[Metric] = []
         categories.Uncategorized = attridict({"name": "Uncategorized", "savePath": ""})
         for category in categories:
             category_torrents = [
@@ -135,18 +153,18 @@ class QbittorrentMetricsCollector:
                     )
                 ]
                 metrics.append(
-                    {
-                        "name": f"{self.config['metrics_prefix']}_torrents_count",
-                        "value": len(status_torrents),
-                        "labels": {
+                    Metric(
+                        name=f"{self.config['metrics_prefix']}_torrents_count",
+                        value=len(status_torrents),
+                        labels={
                             "status": status.value,
                             "category": category,
                         },
-                        "help": (
+                        help_text=(
                             f"Number of torrents in status {status.value} under"
                             f" category {category}"
                         ),
-                    }
+                    )
                 )
 
         return metrics
