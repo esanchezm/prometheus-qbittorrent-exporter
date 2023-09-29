@@ -17,18 +17,6 @@ faulthandler.enable()
 logger = logging.getLogger()
 
 
-class TorrentStatuses(StrEnum):
-    """
-    Represents possible torrent states.
-    """
-
-    CHECKING = auto()
-    COMPLETE = auto()
-    ERRORED = auto()
-    PAUSED = auto()
-    UPLOADING = auto()
-
-
 class MetricType(StrEnum):
     """
     Represents possible metric types (used in this project).
@@ -157,53 +145,72 @@ class QbittorrentMetricsCollector:
             ),
         ]
 
-    def _get_qbittorrent_torrent_tags_metrics(self) -> list[Metric]:
-        """
-        Returns Metric object containing number of torrents for each `category` and
-        `status`.
-        """
+    def _fetch_categories(self) -> dict:
+        """Fetches all categories in use from qbittorrent."""
         try:
-            categories = self.client.torrent_categories.categories
-            torrents = self.client.torrents.info()
+            categories = dict(self.client.torrent_categories.categories)
+            for key, value in categories.items():
+                categories[key] = dict(value)  # type: ignore
+            return categories
         except Exception as e:
-            logger.error(f"Couldn't fetch torrent info: {e}")
+            logger.error(f"Couldn't fetch categories: {e}")
+            return {}
+
+    def _fetch_torrents(self) -> list[dict]:
+        """Fetches torrents from qbittorrent"""
+        try:
+            return [dict(_attr_dict) for _attr_dict in self.client.torrents.info()]
+        except Exception as e:
+            logger.error(f"Couldn't fetch torrents: {e}")
             return []
 
+    def _filter_torrents_by_category(
+        self, category: str, torrents: list[dict]
+    ) -> list[dict]:
+        """Filters torrents by the given category."""
+        return [
+            torrent
+            for torrent in torrents
+            if torrent["category"] == category
+            or (category == "Uncategorized" and torrent["category"] == "")
+        ]
+
+    def _filter_torrents_by_state(
+        self, state: TorrentStates, torrents: list[dict]
+    ) -> list[dict]:
+        """Filters torrents by the given state."""
+        return [torrent for torrent in torrents if torrent["state"] == state.value]
+
+    def _construct_metric(self, state: str, category: str, count: int) -> Metric:
+        """Constructs and returns a metric object with a torrent count and appropriate
+        labels."""
+        return Metric(
+            name=f"{self.config['metrics_prefix']}_torrents_count",
+            value=count,
+            labels={
+                "status": state,
+                "category": category,
+            },
+            help_text=f"Number of torrents in status {state} under category {category}",
+        )
+
+    def _get_qbittorrent_torrent_tags_metrics(self) -> list[Metric]:
+        categories = self._fetch_categories()
+        torrents = self._fetch_torrents()
+
         metrics: list[Metric] = []
+        categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}
 
-        # Match torrents to categories
         for category in categories:
-            category_torrents: list = [
-                torrent
-                for torrent in torrents
-                if torrent["category"] == category
-                or (category == "Uncategorized" and torrent["category"] == "")
-            ]
-
-            # Match qbittorrentapi torrent state to local TorrenStatuses
-            for status in TorrentStatuses:
-                proposed_status: str = f"is_{status.value}"
-                status_torrents = [
-                    torrent
-                    for torrent in category_torrents
-                    if getattr(TorrentStates, proposed_status).fget(
-                        TorrentStates(torrent["state"])
-                    )
-                ]
-                metrics.append(
-                    Metric(
-                        name=f"{self.config['metrics_prefix']}_torrents_count",
-                        value=len(status_torrents),
-                        labels={
-                            "status": status.value,
-                            "category": category,
-                        },
-                        help_text=(
-                            f"Number of torrents in status {status.value} under"
-                            f" category {category}"
-                        ),
-                    )
+            category_torrents = self._filter_torrents_by_category(category, torrents)
+            for state in TorrentStates:
+                state_torrents = self._filter_torrents_by_state(
+                    state, category_torrents
                 )
+                metric = self._construct_metric(
+                    state.value, category, len(state_torrents)
+                )
+                metrics.append(metric)
 
         return metrics
 
