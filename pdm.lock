@@ -6,7 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:8ffbce02a8573413e52d271a4161d851967353831a0ddb77d52987808831cc7c"
+content_hash = "sha256:619785556320f35b6aca0bf164725dc3afa5a1a978782d66a3add0b9e1ad8738"
 
 [[package]]
 name = "attrdict"
@@ -66,38 +66,48 @@ files = [
 ]
 
 [[package]]
+name = "packaging"
+version = "23.1"
+requires_python = ">=3.7"
+summary = "Core utilities for Python packages"
+files = [
+    {file = "packaging-23.1-py3-none-any.whl", hash = "sha256:994793af429502c4ea2ebf6bf664629d07c1a9fe974af92966e4b8d2df7edc61"},
+    {file = "packaging-23.1.tar.gz", hash = "sha256:a392980d2b6cffa644431898be54b0045151319d1e7ec34f0cfed48767dd334f"},
+]
+
+[[package]]
 name = "prometheus-client"
-version = "0.16.0"
+version = "0.17.1"
 requires_python = ">=3.6"
 summary = "Python client for the Prometheus monitoring system."
 files = [
-    {file = "prometheus_client-0.16.0-py3-none-any.whl", hash = "sha256:0836af6eb2c8f4fed712b2f279f6c0a8bbab29f9f4aa15276b91c7cb0d1616ab"},
-    {file = "prometheus_client-0.16.0.tar.gz", hash = "sha256:a03e35b359f14dd1630898543e2120addfdeacd1a6069c1367ae90fd93ad3f48"},
+    {file = "prometheus_client-0.17.1-py3-none-any.whl", hash = "sha256:e537f37160f6807b8202a6fc4764cdd19bac5480ddd3e0d463c3002b34462101"},
+    {file = "prometheus_client-0.17.1.tar.gz", hash = "sha256:21e674f39831ae3f8acde238afd9a27a37d0d2fb5a28ea094f0ce25d2cbf2091"},
 ]
 
 [[package]]
 name = "python-json-logger"
-version = "2.0.2"
-requires_python = ">=3.5"
+version = "2.0.7"
+requires_python = ">=3.6"
 summary = "A python library adding a json log formatter"
 files = [
-    {file = "python-json-logger-2.0.2.tar.gz", hash = "sha256:202a4f29901a4b8002a6d1b958407eeb2dd1d83c18b18b816f5b64476dde9096"},
-    {file = "python_json_logger-2.0.2-py3-none-any.whl", hash = "sha256:99310d148f054e858cd5f4258794ed6777e7ad2c3fd7e1c1b527f1cba4d08420"},
+    {file = "python-json-logger-2.0.7.tar.gz", hash = "sha256:23e7ec02d34237c5aa1e29a070193a4ea87583bb4e7f8fd06d3de8264c4b2e1c"},
+    {file = "python_json_logger-2.0.7-py3-none-any.whl", hash = "sha256:f380b826a991ebbe3de4d897aeec42760035ac760345e57b812938dc8b35e2bd"},
 ]
 
 [[package]]
 name = "qbittorrent-api"
-version = "2023.4.47"
+version = "2023.9.53"
 summary = "Python client for qBittorrent v4.1+ Web API."
 dependencies = [
+    "packaging",
     "requests>=2.16.0",
-    "setuptools",
     "six",
     "urllib3>=1.24.2",
 ]
 files = [
-    {file = "qbittorrent-api-2023.4.47.tar.gz", hash = "sha256:7199daf5cee69aa8bc98829d0c4548ec21f682747a7368edc59b94b2f8f7dec0"},
-    {file = "qbittorrent_api-2023.4.47-py2.py3-none-any.whl", hash = "sha256:71602d783ffa5ab64f6a70fccb5e259df6b289140c7abf1c6ec4458d0f41000e"},
+    {file = "qbittorrent-api-2023.9.53.tar.gz", hash = "sha256:fead1b2f55b1227ea088ea7d90b5022d94694bfd9dd9176beb5ad1c195d044ff"},
+    {file = "qbittorrent_api-2023.9.53-py2.py3-none-any.whl", hash = "sha256:963ae59d16a9c4a9aa1714fb7f6799539dc2693136cdc0e377daab3612ca775a"},
 ]
 
 [[package]]
@@ -114,16 +124,6 @@ dependencies = [
 files = [
     {file = "requests-2.31.0-py3-none-any.whl", hash = "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f"},
     {file = "requests-2.31.0.tar.gz", hash = "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"},
-]
-
-[[package]]
-name = "setuptools"
-version = "68.2.2"
-requires_python = ">=3.8"
-summary = "Easily download, build, install, upgrade, and uninstall Python packages"
-files = [
-    {file = "setuptools-68.2.2-py3-none-any.whl", hash = "sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a"},
-    {file = "setuptools-68.2.2.tar.gz", hash = "sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87"},
 ]
 
 [[package]]
