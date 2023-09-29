@@ -86,7 +86,7 @@ class QbittorrentMetricsCollector:
             {
                 "name": f"{self.config['metrics_prefix']}_firewalled",
                 "value": response.get("connection_status", "") == "firewalled",
-                "help": "Whether if server is behind a firewall",
+                "help": "Whether server is behind a firewall",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dht_nodes",
