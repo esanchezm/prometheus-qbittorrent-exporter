@@ -3,9 +3,8 @@ import os
 import sys
 import signal
 import faulthandler
-from attrdict import AttrDict
+import attridict
 from qbittorrentapi import Client, TorrentStates
-from qbittorrentapi.exceptions import APIConnectionError
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
@@ -17,7 +16,7 @@ faulthandler.enable()
 logger = logging.getLogger()
 
 
-class QbittorrentMetricsCollector():
+class QbittorrentMetricsCollector:
     TORRENT_STATUSES = [
         "checking",
         "complete",
@@ -34,7 +33,7 @@ class QbittorrentMetricsCollector():
             port=config["port"],
             username=config["username"],
             password=config["password"],
-            VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"]
+            VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
         )
 
     def collect(self):
@@ -98,13 +97,13 @@ class QbittorrentMetricsCollector():
                 "name": f"{self.config['metrics_prefix']}_dl_info_data",
                 "value": response.get("dl_info_data", 0),
                 "help": "Data downloaded this session (bytes)",
-                "type": "counter"
+                "type": "counter",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_up_info_data",
                 "value": response.get("up_info_data", 0),
                 "help": "Data uploaded this session (bytes)",
-                "type": "counter"
+                "type": "counter",
             },
         ]
 
@@ -117,29 +116,43 @@ class QbittorrentMetricsCollector():
             return []
 
         metrics = []
-        categories.Uncategorized = AttrDict({'name': 'Uncategorized', 'savePath': ''})
+        categories.Uncategorized = attridict({"name": "Uncategorized", "savePath": ""})
         for category in categories:
-            category_torrents = [t for t in torrents if t['category'] == category or (category == "Uncategorized" and t['category'] == "")]
+            category_torrents = [
+                t
+                for t in torrents
+                if t["category"] == category
+                or (category == "Uncategorized" and t["category"] == "")
+            ]
 
             for status in self.TORRENT_STATUSES:
                 status_prop = f"is_{status}"
                 status_torrents = [
-                    t for t in category_torrents if getattr(TorrentStates, status_prop).fget(TorrentStates(t['state']))
+                    t
+                    for t in category_torrents
+                    if getattr(TorrentStates, status_prop).fget(
+                        TorrentStates(t["state"])
+                    )
                 ]
-                metrics.append({
-                    "name": f"{self.config['metrics_prefix']}_torrents_count",
-                    "value": len(status_torrents),
-                    "labels": {
-                        "status": status,
-                        "category": category,
-                    },
-                    "help": f"Number of torrents in status {status} under category {category}"
-                })
+                metrics.append(
+                    {
+                        "name": f"{self.config['metrics_prefix']}_torrents_count",
+                        "value": len(status_torrents),
+                        "labels": {
+                            "status": status,
+                            "category": category,
+                        },
+                        "help": (
+                            f"Number of torrents in status {status} under category"
+                            f" {category}"
+                        ),
+                    }
+                )
 
         return metrics
 
 
-class SignalHandler():
+class SignalHandler:
     def __init__(self):
         self.shutdownCount = 0
 
@@ -157,6 +170,7 @@ class SignalHandler():
         logger.info("Exporter is shutting down")
         self.shutdownCount += 1
 
+
 def get_config_value(key, default=""):
     input_path = os.environ.get("FILE__" + key, None)
     if input_path is not None:
@@ -173,12 +187,11 @@ def main():
     # Init logger so it can be used
     logHandler = logging.StreamHandler()
     formatter = jsonlogger.JsonFormatter(
-        "%(asctime) %(levelname) %(message)",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime) %(levelname) %(message)", datefmt="%Y-%m-%d %H:%M:%S"
     )
     logHandler.setFormatter(formatter)
     logger.addHandler(logHandler)
-    logger.setLevel("INFO") # default until config is loaded
+    logger.setLevel("INFO")  # default until config is loaded
 
     config = {
         "host": get_config_value("QBITTORRENT_HOST", ""),
@@ -188,7 +201,9 @@ def main():
         "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
         "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
-        "verify_webui_certificate": get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True",
+        "verify_webui_certificate": (
+            get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True"
+        ),
     }
     # set level once config has been loaded
     logger.setLevel(config["log_level"])
@@ -197,10 +212,14 @@ def main():
     signal_handler = SignalHandler()
 
     if not config["host"]:
-        logger.error("No host specified, please set QBITTORRENT_HOST environment variable")
+        logger.error(
+            "No host specified, please set QBITTORRENT_HOST environment variable"
+        )
         sys.exit(1)
     if not config["port"]:
-        logger.error("No port specified, please set QBITTORRENT_PORT environment variable")
+        logger.error(
+            "No port specified, please set QBITTORRENT_PORT environment variable"
+        )
         sys.exit(1)
 
     # Register our custom collector
@@ -209,9 +228,7 @@ def main():
 
     # Start server
     start_http_server(config["exporter_port"])
-    logger.info(
-        f"Exporter listening on port {config['exporter_port']}"
-    )
+    logger.info(f"Exporter listening on port {config['exporter_port']}")
 
     while not signal_handler.is_shutting_down():
         time.sleep(1)
