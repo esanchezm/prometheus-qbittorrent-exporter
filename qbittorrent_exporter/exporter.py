@@ -89,43 +89,56 @@ class QbittorrentMetricsCollector:
                 name=f"{self.config['metrics_prefix']}_up",
                 value=bool(response),
                 labels={"version": version},
-                help_text="Whether server is reachable",
+                help_text=(
+                    "Whether the qBittorrent server is answering requests from this"
+                    " exporter. A `version` label with the server version is added."
+                ),
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_connected",
                 value=response.get("connection_status", "") == "connected",
                 labels={},  # no labels in the example
-                help_text="Whether server is currently connected",
+                help_text=(
+                    "Whether the qBittorrent server is connected to the Bittorrent"
+                    " network."
+                ),
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_firewalled",
                 value=response.get("connection_status", "") == "firewalled",
                 labels={},  # no labels in the example
-                help_text="Whether server is behind a firewall",
+                help_text=(
+                    "Whether the qBittorrent server is connected to the Bittorrent"
+                    " network but is behind a firewall."
+                ),
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_dht_nodes",
                 value=response.get("dht_nodes", 0),
                 labels={},  # no labels in the example
-                help_text="Number of connected DHT nodes",
+                help_text="Number of DHT nodes connected to.",
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_dl_info_data",
                 value=response.get("dl_info_data", 0),
                 labels={},  # no labels in the example
-                help_text="Data downloaded this session (bytes)",
+                help_text="Data downloaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_up_info_data",
                 value=response.get("up_info_data", 0),
                 labels={},  # no labels in the example
-                help_text="Data uploaded this session (bytes)",
+                help_text="Data uploaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
         ]
 
     def _get_qbittorrent_torrent_tags_metrics(self) -> list[Metric]:
+        """
+        Returns Metric object containing number of torrents for each `category` and
+        `status`.
+        """
         try:
             categories = self.client.torrent_categories.categories
             torrents = self.client.torrents.info()
