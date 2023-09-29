@@ -234,7 +234,7 @@ class ShutdownSignalHandler:
         self.shutdown_count += 1
 
 
-def _get_config_value(key, default=""):
+def _get_config_value(key: str, default: str = "") -> str:
     input_path = os.environ.get("FILE__" + key, None)
     if input_path is not None:
         try:
