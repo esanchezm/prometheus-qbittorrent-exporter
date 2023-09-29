@@ -215,26 +215,26 @@ class QbittorrentMetricsCollector:
         return metrics
 
 
-class SignalHandler:
+class ShutdownSignalHandler:
     def __init__(self):
-        self.shutdownCount = 0
+        self.shutdown_count: int = 0
 
         # Register signal handler
         signal.signal(signal.SIGINT, self._on_signal_received)
         signal.signal(signal.SIGTERM, self._on_signal_received)
 
     def is_shutting_down(self):
-        return self.shutdownCount > 0
+        return self.shutdown_count > 0
 
     def _on_signal_received(self, signal, frame):
-        if self.shutdownCount > 1:
+        if self.shutdown_count > 1:
             logger.warn("Forcibly killing exporter")
             sys.exit(1)
         logger.info("Exporter is shutting down")
-        self.shutdownCount += 1
+        self.shutdown_count += 1
 
 
-def get_config_value(key, default=""):
+def _get_config_value(key, default=""):
     input_path = os.environ.get("FILE__" + key, None)
     if input_path is not None:
         try:
@@ -244,6 +244,22 @@ def get_config_value(key, default=""):
             logger.error(f"Unable to read value for {key} from {input_path}: {str(e)}")
 
     return os.environ.get(key, default)
+
+
+def get_config() -> dict:
+    """Loads all config values."""
+    return {
+        "host": _get_config_value("QBITTORRENT_HOST", ""),
+        "port": _get_config_value("QBITTORRENT_PORT", ""),
+        "username": _get_config_value("QBITTORRENT_USER", ""),
+        "password": _get_config_value("QBITTORRENT_PASS", ""),
+        "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
+        "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
+        "metrics_prefix": _get_config_value("METRICS_PREFIX", "qbittorrent"),
+        "verify_webui_certificate": (
+            _get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True"
+        ),
+    }
 
 
 def main():
@@ -256,23 +272,13 @@ def main():
     logger.addHandler(logHandler)
     logger.setLevel("INFO")  # default until config is loaded
 
-    config = {
-        "host": get_config_value("QBITTORRENT_HOST", ""),
-        "port": get_config_value("QBITTORRENT_PORT", ""),
-        "username": get_config_value("QBITTORRENT_USER", ""),
-        "password": get_config_value("QBITTORRENT_PASS", ""),
-        "exporter_port": int(get_config_value("EXPORTER_PORT", "8000")),
-        "log_level": get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
-        "metrics_prefix": get_config_value("METRICS_PREFIX", "qbittorrent"),
-        "verify_webui_certificate": (
-            get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True"
-        ),
-    }
+    config = get_config()
+
     # set level once config has been loaded
     logger.setLevel(config["log_level"])
 
     # Register signal handler
-    signal_handler = SignalHandler()
+    signal_handler = ShutdownSignalHandler()
 
     if not config["host"]:
         logger.error(
