@@ -76,22 +76,22 @@ class QbittorrentMetricsCollector:
                 "name": f"{self.config['metrics_prefix']}_up",
                 "value": bool(response),
                 "labels": {"version": version},
-                "help": "Whether if server is alive or not",
+                "help": "Whether server is reachable",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_connected",
                 "value": response.get("connection_status", "") == "connected",
-                "help": "Whether if server is connected or not",
+                "help": "Whether server is currently connected",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_firewalled",
                 "value": response.get("connection_status", "") == "firewalled",
-                "help": "Whether if server is under a firewall or not",
+                "help": "Whether if server is behind a firewall",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dht_nodes",
                 "value": response.get("dht_nodes", 0),
-                "help": "DHT nodes connected to",
+                "help": "Number of connected DHT nodes",
             },
             {
                 "name": f"{self.config['metrics_prefix']}_dl_info_data",
