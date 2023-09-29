@@ -52,8 +52,7 @@ class QbittorrentMetricsCollector:
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
-        Gets Metric objects representing the current state of qbittorrent and yields
-        Prometheus gauges.
+        Yields Prometheus gauges and counters from metrics collected from qbittorrent.
         """
         metrics: list[Metric] = self.get_qbittorrent_metrics()
 
