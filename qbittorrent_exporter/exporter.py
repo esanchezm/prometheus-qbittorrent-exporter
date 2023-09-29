@@ -3,7 +3,6 @@ import os
 import sys
 import signal
 import faulthandler
-import attridict
 from qbittorrentapi import Client, TorrentStates
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
@@ -18,7 +17,11 @@ faulthandler.enable()
 logger = logging.getLogger()
 
 
-class TorrentStatus(StrEnum):
+class TorrentStatuses(StrEnum):
+    """
+    Represents possible torrent states.
+    """
+
     CHECKING = auto()
     COMPLETE = auto()
     ERRORED = auto()
@@ -27,21 +30,29 @@ class TorrentStatus(StrEnum):
 
 
 class MetricType(StrEnum):
+    """
+    Represents possible metric types (used in this project).
+    """
+
     GAUGE = auto()
     COUNTER = auto()
 
 
 @dataclass
 class Metric:
+    """
+    Contains data and metadata about a single counter or gauge.
+    """
+
     name: str
-    value: int | float | bool
-    labels: dict[str, str] = field(default_factory={})
+    value: Any
+    labels: dict[str, str] = field(default_factory=lambda: {})  # Default to empty dict
     help_text: str = ""
     metric_type: MetricType = MetricType.GAUGE
 
 
 class QbittorrentMetricsCollector:
-    def __init__(self, config: dict[str, str | int | bool]) -> None:
+    def __init__(self, config: dict) -> None:
         self.config = config
         self.client = Client(
             host=config["host"],
@@ -52,28 +63,40 @@ class QbittorrentMetricsCollector:
         )
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
+        """
+        Gets Metric objects representing the current state of qbittorrent and yields
+        Prometheus gauges.
+        """
         metrics: list[Metric] = self.get_qbittorrent_metrics()
 
         for metric in metrics:
             if metric.metric_type == MetricType.COUNTER:
                 prom_metric = CounterMetricFamily(
-                    metric.name, metric.help_text, labels=metric.labels.keys()
+                    metric.name, metric.help_text, labels=list(metric.labels.keys())
                 )
             else:
                 prom_metric = GaugeMetricFamily(
-                    metric.name, metric.help_text, labels=metric.labels.keys()
+                    metric.name, metric.help_text, labels=list(metric.labels.keys())
                 )
-            prom_metric.add_metric(value=metric.value, labels=metric.labels.values())
+            prom_metric.add_metric(
+                value=metric.value, labels=list(metric.labels.values())
+            )
             yield prom_metric
 
     def get_qbittorrent_metrics(self) -> list[Metric]:
+        """
+        Calls and combines qbittorrent state metrics with torrent metrics.
+        """
         metrics: list[Metric] = []
         metrics.extend(self._get_qbittorrent_status_metrics())
         metrics.extend(self._get_qbittorrent_torrent_tags_metrics())
 
         return metrics
 
-    def _get_qbittorrent_status_metrics(self) -> list[dict]:
+    def _get_qbittorrent_status_metrics(self) -> list[Metric]:
+        """
+        Returns metrics about the state of the qbittorrent server.
+        """
         response: dict[str, Any] = {}
         version: str = ""
 
@@ -147,22 +170,24 @@ class QbittorrentMetricsCollector:
             return []
 
         metrics: list[Metric] = []
-        categories.Uncategorized = attridict({"name": "Uncategorized", "savePath": ""})
+
+        # Match torrents to categories
         for category in categories:
-            category_torrents = [
-                t
-                for t in torrents
-                if t["category"] == category
-                or (category == "Uncategorized" and t["category"] == "")
+            category_torrents: list = [
+                torrent
+                for torrent in torrents
+                if torrent["category"] == category
+                or (category == "Uncategorized" and torrent["category"] == "")
             ]
 
-            for status in TorrentStatus:
-                status_prop = f"is_{status.value}"
+            # Match qbittorrentapi torrent state to local TorrenStatuses
+            for status in TorrentStatuses:
+                proposed_status: str = f"is_{status.value}"
                 status_torrents = [
-                    t
-                    for t in category_torrents
-                    if getattr(TorrentStates, status_prop).fget(
-                        TorrentStates(t["state"])
+                    torrent
+                    for torrent in category_torrents
+                    if getattr(TorrentStates, proposed_status).fget(
+                        TorrentStates(torrent["state"])
                     )
                 ]
                 metrics.append(
@@ -255,7 +280,7 @@ def main():
 
     # Register our custom collector
     logger.info("Exporter is starting up")
-    REGISTRY.register(QbittorrentMetricsCollector(config))
+    REGISTRY.register(QbittorrentMetricsCollector(config))  # type: ignore
 
     # Start server
     start_http_server(config["exporter_port"])

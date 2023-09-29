@@ -6,16 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:637d322b802d007082b71cf7d27382f3b6b5618434faf6b346358abe81fc2f7f"
-
-[[package]]
-name = "attridict"
-version = "0.0.8"
-summary = "A dict implementation with support for easy and clean access of its values through attributes"
-files = [
-    {file = "attridict-0.0.8-py3-none-any.whl", hash = "sha256:8ee65af81f7762354e4514c443bbc04786a924c8e3e610c7883d2efbf323df6d"},
-    {file = "attridict-0.0.8.tar.gz", hash = "sha256:23a17671b9439d36e2bdb0a69c09f033abab0900a9df178e0f89aa1b2c42c5cd"},
-]
+content_hash = "sha256:ec00e4f386c7e3cac870ab101184e565ee290c82a8b3d759fb7ad2762d0366ba"
 
 [[package]]
 name = "certifi"
