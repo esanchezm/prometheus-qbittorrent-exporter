@@ -234,3 +234,7 @@ def main():
         time.sleep(1)
 
     logger.info("Exporter has shutdown")
+
+
+if __name__ == "__main__":
+    main()
