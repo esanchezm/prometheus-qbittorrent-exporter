@@ -517,7 +517,7 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily data growth",
       "type": "stat"
     },
@@ -841,7 +841,7 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily photos growth",
       "type": "stat"
     },
@@ -1314,7 +1314,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1357,7 +1358,7 @@
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily video growth",
       "type": "stat"
     },
@@ -1376,7 +1377,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1508,7 +1510,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1570,7 +1573,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1668,7 +1672,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1763,7 +1768,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1824,6 +1830,6 @@
   "timezone": "",
   "title": "immich",
   "uid": "ZWWp3aa4k",
-  "version": 28,
+  "version": 29,
   "weekStart": ""
 }
