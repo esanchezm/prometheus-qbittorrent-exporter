@@ -1,6 +1,6 @@
 [project]
 name = "prometheus-qbittorrent-exporter"
-version = "1.3.0"
+version = "1.4.0"
 description = "Prometheus exporter for qbittorrent"
 authors = [
     {name = "Esteban Sanchez", email = "esteban.sanchez@gmail.com"},
