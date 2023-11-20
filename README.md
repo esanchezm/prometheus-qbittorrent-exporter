@@ -1,6 +1,8 @@
 # Prometheus qBittorrent exporter
 
-![Prometheus qBittorrent exporter](https://raw.githubusercontent.com/esanchezm/prometheus-qbittorrent-exporter/master/logo.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/esanchezm/prometheus-qbittorrent-exporter/master/logo.png" height="230">
+</p>
 
 A prometheus exporter for qBitorrent. Get metrics from a server and offers them in a prometheus format.
 
