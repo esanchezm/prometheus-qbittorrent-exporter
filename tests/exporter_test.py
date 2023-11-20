@@ -186,3 +186,34 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "Books", self.torrentsCategories
         )
         self.assertEqual(result, expected_result)
+
+    def test_construct_metric_with_valid_state_and_category(self):
+        state = "downloading"
+        category = "movies"
+        count = 10
+
+        metric = self.collector._construct_metric(state, category, count)
+
+        self.assertEqual(metric.name, "qbittorrent_torrents_count")
+        self.assertEqual(metric.value, count)
+        self.assertEqual(metric.labels["status"], state)
+        self.assertEqual(metric.labels["category"], category)
+        self.assertEqual(
+            metric.help_text,
+            f"Number of torrents in status {state} under category {category}",
+        )
+
+    def test_construct_metric_with_empty_state_and_category(self):
+        state = ""
+        category = ""
+        count = 5
+
+        metric = self.collector._construct_metric(state, category, count)
+
+        self.assertEqual(metric.name, "qbittorrent_torrents_count")
+        self.assertEqual(metric.value, count)
+        self.assertEqual(metric.labels["status"], state)
+        self.assertEqual(metric.labels["category"], category)
+        self.assertEqual(
+            metric.help_text, "Number of torrents in status  under category "
+        )
