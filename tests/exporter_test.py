@@ -217,3 +217,60 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(
             metric.help_text, "Number of torrents in status  under category "
         )
+
+    def test_get_qbittorrent_status_metrics(self):
+        self.collector.client.transfer.info = {"connection_status": "connected"}
+        self.collector.client.app.version = "1.2.3"
+
+        expected_metrics = [
+            Metric(
+                name="qbittorrent_up",
+                value=True,
+                labels={"version": "1.2.3"},
+                help_text=(
+                    "Whether the qBittorrent server is answering requests from this"
+                    " exporter. A `version` label with the server version is added."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_connected",
+                value=True,
+                labels={},
+                help_text=(
+                    "Whether the qBittorrent server is connected to the Bittorrent"
+                    " network."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_firewalled",
+                value=False,
+                labels={},
+                help_text=(
+                    "Whether the qBittorrent server is connected to the Bittorrent"
+                    " network but is behind a firewall."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_dht_nodes",
+                value=0,
+                labels={},
+                help_text="Number of DHT nodes connected to.",
+            ),
+            Metric(
+                name="qbittorrent_dl_info_data",
+                value=0,
+                labels={},
+                help_text="Data downloaded since the server started, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name="qbittorrent_up_info_data",
+                value=0,
+                labels={},
+                help_text="Data uploaded since the server started, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+        ]
+
+        metrics = self.collector._get_qbittorrent_status_metrics()
+        self.assertEqual(metrics, expected_metrics)
