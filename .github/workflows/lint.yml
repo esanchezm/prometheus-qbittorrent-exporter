@@ -27,7 +27,7 @@ jobs:
         with:
           options: "--check --verbose"
       - name: Test with pytest
-          run: |
+        run: |
           pdm run pytest --junit-xml=test-results.xml
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
