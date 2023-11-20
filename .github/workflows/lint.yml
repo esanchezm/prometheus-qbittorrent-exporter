@@ -8,6 +8,7 @@ jobs:
     permissions:
         pull-requests: write
         contents: write
+        checks: write
     strategy:
       matrix:
         python-version: ["3.11"]
