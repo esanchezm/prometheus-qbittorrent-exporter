@@ -1,0 +1,28 @@
+[project]
+name = "prometheus-qbittorrent-exporter"
+version = "1.3.0"
+description = "Prometheus exporter for qbittorrent"
+authors = [
+    {name = "Esteban Sanchez", email = "esteban.sanchez@gmail.com"},
+]
+dependencies = [
+    "prometheus-client>=0.17.1",
+    "python-json-logger>=2.0.7",
+    "qbittorrent-api>=2023.9.53",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+keywords = ["prometheus", "qbittorrent"]
+license = {text = "GPL-3.0"}
+classifiers = []
+
+[project.urls]
+Homepage = "https://github.com/esanchezm/prometheus-qbittorrent-exporter"
+Downloads = "https://github.com/esanchezm/prometheus-qbittorrent-exporter/archive/1.3.0.tar.gz"
+
+[project.scripts]
+qbittorrent-exporter = "qbittorrent_exporter.exporter:main"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

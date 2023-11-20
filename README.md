@@ -53,12 +53,12 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 
 | Metric name                                         | Type     | Description      |
 | --------------------------------------------------- | -------- | ---------------- |
-| `qbittorrent_up`                                    | gauge    | Whether if the qBittorrent server is answering requests from this exporter. A `version` label with the server version is added |
-| `qbittorrent_connected`                                         | gauge    | Whether if the qBittorrent server is connected to the Bittorrent network.  |
-| `qbittorrent_firewalled`                                        | gauge    | Whether if the qBittorrent server is connected to the Bittorrent network but is behind a firewall.  |
-| `qbittorrent_dht_nodes`                                         | gauge    | Number of DHT nodes connected to |
-| `qbittorrent_dl_info_data`                                      | counter  | Data downloaded since the server started, in bytes |
-| `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes |
+| `qbittorrent_up`                                    | gauge    | Whether the qBittorrent server is answering requests from this exporter. A `version` label with the server version is added. |
+| `qbittorrent_connected`                                         | gauge    | Whether the qBittorrent server is connected to the Bittorrent network.  |
+| `qbittorrent_firewalled`                                        | gauge    | Whether the qBittorrent server is connected to the Bittorrent network but is behind a firewall.  |
+| `qbittorrent_dht_nodes`                                         | gauge    | Number of DHT nodes connected to. |
+| `qbittorrent_dl_info_data`                                      | counter  | Data downloaded since the server started, in bytes. |
+| `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes. |
 | `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|
 
 ## Screenshot
