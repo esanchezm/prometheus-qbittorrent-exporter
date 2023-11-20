@@ -133,3 +133,6 @@ config.env
 
 # Ignore pdm local files
 .pdm-python
+
+# Ignore ruff files
+.ruff_cache
