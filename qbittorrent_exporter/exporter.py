@@ -1,16 +1,17 @@
-import time
-import os
-import sys
-import signal
 import faulthandler
-from qbittorrentapi import Client, TorrentStates
-from prometheus_client import start_http_server
-from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 import logging
-from pythonjsonlogger import jsonlogger
-from enum import StrEnum, auto
-from typing import Iterable, Any
+import os
+import signal
+import sys
+import time
 from dataclasses import dataclass, field
+from enum import StrEnum, auto
+from typing import Any, Iterable
+
+from prometheus_client import start_http_server
+from prometheus_client.core import REGISTRY, CounterMetricFamily, GaugeMetricFamily
+from pythonjsonlogger import jsonlogger
+from qbittorrentapi import Client, TorrentStates
 
 # Enable dumps on stderr in case of segfault
 faulthandler.enable()
