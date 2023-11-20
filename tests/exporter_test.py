@@ -8,6 +8,7 @@ from qbittorrent_exporter.exporter import (
     MetricType,
     QbittorrentMetricsCollector,
 )
+from qbittorrentapi import TorrentStates
 
 
 class TestQbittorrentMetricsCollector(unittest.TestCase):
@@ -20,7 +21,22 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "username": "user",
             "password": "pass",
             "verify_webui_certificate": False,
+            "metrics_prefix": "qbittorrent",
         }
+        self.torrentsState = [
+            {"name": "Torrent DOWNLOADING 1", "state": TorrentStates.DOWNLOADING},
+            {"name": "Torrent UPLOADING 1", "state": TorrentStates.UPLOADING},
+            {"name": "Torrent DOWNLOADING 2", "state": TorrentStates.DOWNLOADING},
+            {"name": "Torrent UPLOADING 2", "state": TorrentStates.UPLOADING},
+        ]
+        self.torrentsCategories = [
+            {"name": "Torrent Movies 1", "category": "Movies"},
+            {"name": "Torrent Music 1", "category": "Music"},
+            {"name": "Torrent Movies 2", "category": "Movies"},
+            {"name": "Torrent unknown", "category": ""},
+            {"name": "Torrent Music 2", "category": "Music"},
+            {"name": "Torrent Uncategorized 1", "category": "Uncategorized"},
+        ]
         self.collector = QbittorrentMetricsCollector(self.config)
 
     def test_init(self):
@@ -68,3 +84,136 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(result.documentation, "Test Counter")
         self.assertEqual(result.samples[0].labels, {"label2": "value2"})
         self.assertEqual(result.samples[0].value, 230)
+
+    def test_get_qbittorrent_metrics(self):
+        metrics = self.collector.get_qbittorrent_metrics()
+        self.assertNotEqual(len(metrics), 0)
+
+    def test_fetch_categories(self):
+        # Mock the client.torrent_categories.categories attribute
+        self.collector.client.torrent_categories.categories = {
+            "category1": {"name": "Category 1"},
+            "category2": {"name": "Category 2"},
+            "category3": {"name": "Category 3"},
+        }
+
+        categories = self.collector._fetch_categories()
+        self.assertIsInstance(categories, dict)
+        self.assertNotEqual(len(categories), 0)
+        self.assertEqual(categories["category1"]["name"], "Category 1")
+        self.assertEqual(categories["category2"]["name"], "Category 2")
+        self.assertEqual(categories["category3"]["name"], "Category 3")
+
+    def test_fetch_categories_exception(self):
+        self.collector.client.torrent_categories.categories = Exception(
+            "Error fetching categories"
+        )
+        categories = self.collector._fetch_categories()
+        self.assertEqual(categories, {})
+
+    def test_fetch_torrents_success(self):
+        # Mock the return value of self.client.torrents.info()
+        self.collector.client.torrents.info.return_value = [
+            {"name": "Torrent 1", "size": 100},
+            {"name": "Torrent 2", "size": 200},
+            {"name": "Torrent 3", "size": 300},
+        ]
+
+        expected_result = [
+            {"name": "Torrent 1", "size": 100},
+            {"name": "Torrent 2", "size": 200},
+            {"name": "Torrent 3", "size": 300},
+        ]
+
+        result = self.collector._fetch_torrents()
+        self.assertEqual(result, expected_result)
+
+    def test_fetch_torrents_exception(self):
+        # Mock an exception being raised by self.client.torrents.info()
+        self.collector.client.torrents.info.side_effect = Exception("Connection error")
+
+        expected_result = []
+
+        result = self.collector._fetch_torrents()
+        self.assertEqual(result, expected_result)
+
+    def test_filter_torrents_by_state(self):
+        expected = [
+            {"name": "Torrent DOWNLOADING 1", "state": TorrentStates.DOWNLOADING},
+            {"name": "Torrent DOWNLOADING 2", "state": TorrentStates.DOWNLOADING},
+        ]
+        result = self.collector._filter_torrents_by_state(
+            TorrentStates.DOWNLOADING, self.torrentsState
+        )
+        self.assertEqual(result, expected)
+
+        expected = [
+            {"name": "Torrent UPLOADING 1", "state": TorrentStates.UPLOADING},
+            {"name": "Torrent UPLOADING 2", "state": TorrentStates.UPLOADING},
+        ]
+        result = self.collector._filter_torrents_by_state(
+            TorrentStates.UPLOADING, self.torrentsState
+        )
+        self.assertEqual(result, expected)
+
+        expected = []
+        result = self.collector._filter_torrents_by_state(
+            TorrentStates.ERROR, self.torrentsState
+        )
+        self.assertEqual(result, expected)
+
+    def test_filter_torrents_by_category(self):
+        expected_result = [
+            {"name": "Torrent Movies 1", "category": "Movies"},
+            {"name": "Torrent Movies 2", "category": "Movies"},
+        ]
+        result = self.collector._filter_torrents_by_category(
+            "Movies", self.torrentsCategories
+        )
+        self.assertEqual(result, expected_result)
+
+        expected_result = [
+            {"name": "Torrent unknown", "category": ""},
+            {"name": "Torrent Uncategorized 1", "category": "Uncategorized"},
+        ]
+        result = self.collector._filter_torrents_by_category(
+            "Uncategorized", self.torrentsCategories
+        )
+        self.assertEqual(result, expected_result)
+
+        expected_result = []
+        result = self.collector._filter_torrents_by_category(
+            "Books", self.torrentsCategories
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_construct_metric_with_valid_state_and_category(self):
+        state = "downloading"
+        category = "movies"
+        count = 10
+
+        metric = self.collector._construct_metric(state, category, count)
+
+        self.assertEqual(metric.name, "qbittorrent_torrents_count")
+        self.assertEqual(metric.value, count)
+        self.assertEqual(metric.labels["status"], state)
+        self.assertEqual(metric.labels["category"], category)
+        self.assertEqual(
+            metric.help_text,
+            f"Number of torrents in status {state} under category {category}",
+        )
+
+    def test_construct_metric_with_empty_state_and_category(self):
+        state = ""
+        category = ""
+        count = 5
+
+        metric = self.collector._construct_metric(state, category, count)
+
+        self.assertEqual(metric.name, "qbittorrent_torrents_count")
+        self.assertEqual(metric.value, count)
+        self.assertEqual(metric.labels["status"], state)
+        self.assertEqual(metric.labels["category"], category)
+        self.assertEqual(
+            metric.help_text, "Number of torrents in status  under category "
+        )
