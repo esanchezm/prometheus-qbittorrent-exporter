@@ -1,0 +1,11 @@
+__pycache__/
+.coverage*
+.github
+.gitignore
+.pdm-python
+.pdm*
+.pre-commit-config.yaml
+.vscode
+build/
+logo.png
+tests
