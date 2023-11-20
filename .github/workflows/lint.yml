@@ -5,6 +5,9 @@ on: [push, pull_request]
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    permissions:
+        pull-requests: write
+        contents: write
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -24,8 +27,28 @@ jobs:
         with:
           options: "--check --verbose"
       - name: Test with pytest
+          run: |
+          pdm run pytest --junit-xml=test-results.xml
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results.xml
+      - name: Test with coverage
         run: |
-          pdm run coverage run -m pytest  -v -s
+          pdm run coverage run -m pytest -v -s
       - name: Generate Coverage Report
         run: |
           pdm run coverage report -m
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v3
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt
