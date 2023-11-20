@@ -1,0 +1,29 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        stages: [commit]
+        types: [python]
+        entry: pdm run black .
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: ruff
+        name: ruff
+        stages: [commit]
+        types: [python]
+        entry: pdm run ruff .
+        language: system
+        pass_filenames: false
+        always_run: true
+        fail_fast: true
+      - id: pytest
+        name: pytest
+        stages: [commit]
+        types: [python]
+        entry: pdm run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        fail_fast: true
