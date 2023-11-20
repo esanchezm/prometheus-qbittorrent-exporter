@@ -1,0 +1,31 @@
+name: Run Unit Test via Pytest
+
+on: [push, pull_request]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v3
+      - name: Install dependencies
+        run: pdm install
+      - name: Lint with black
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+      - name: Test with pytest
+        run: |
+          pdm run coverage run -m pytest  -v -s
+      - name: Generate Coverage Report
+        run: |
+          pdm run coverage report -m

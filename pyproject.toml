@@ -32,4 +32,5 @@ dev = [
     "pytest>=7.4.3",
     "isort>=5.12.0",
     "black>=23.11.0",
+    "coverage>=7.3.2",
 ]
