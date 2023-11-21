@@ -25,7 +25,10 @@ jobs:
         with:
           flavor: |
             latest=true
-          tags: type=semver,pattern=v{{version}}
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=ref,event=push
+            type=sha
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
       - name: Login to DockerHub
@@ -48,7 +51,10 @@ jobs:
         with:
           flavor: |
             latest=true
-          tags: type=semver,pattern=v{{version}}
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=ref,event=push
+            type=sha
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
       - name: Login to Github Container Registry
