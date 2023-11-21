@@ -24,7 +24,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           flavor: |
-            latest=auto
+            latest=true
           tags: type=semver,pattern=v{{version}}
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
@@ -47,7 +47,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           flavor: |
-            latest=auto
+            latest=true
           tags: type=semver,pattern=v{{version}}
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
