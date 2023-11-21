@@ -25,6 +25,9 @@ jobs:
         with:
           flavor: |
             latest=auto
+          tags: |
+            # minimal
+            type=pep440,pattern=v{{version}}
           images: ${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter
 
       - name: Login to DockerHub
@@ -46,6 +49,9 @@ jobs:
         with:
           flavor: |
             latest=auto
+          tags: |
+            # minimal
+            type=pep440,pattern=v{{version}}
           images: ${{ secrets.REGISTRY_USERNAME }}/prometheus-qbittorrent-exporter
 
       - name: Login to Github Container Registry
