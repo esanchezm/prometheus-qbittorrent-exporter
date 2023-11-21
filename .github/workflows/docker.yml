@@ -55,7 +55,7 @@ jobs:
             type=semver,pattern=v{{version}}
             type=ref,event=branch
             type=sha
-          images: ${{ github.actor }}/prometheus-qbittorrent-exporter
+          images: ghcr.io/${{ github.actor }}/prometheus-qbittorrent-exporter
 
       - name: Login to Github Container Registry
         uses: docker/login-action@v3
