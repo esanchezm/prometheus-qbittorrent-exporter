@@ -27,7 +27,7 @@ jobs:
             latest=true
           tags: |
             type=semver,pattern=v{{version}}
-            type=ref,event=push
+            type=ref,event=branch
             type=sha
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
@@ -53,7 +53,7 @@ jobs:
             latest=true
           tags: |
             type=semver,pattern=v{{version}}
-            type=ref,event=push
+            type=ref,event=branch
             type=sha
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
 
