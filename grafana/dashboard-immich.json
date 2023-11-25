@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "10.0.2"
+      "version": "10.1.5"
     },
     {
       "type": "panel",
@@ -118,7 +118,7 @@
         },
         "textMode": "name"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -185,7 +185,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -247,7 +247,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -309,7 +309,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -371,7 +371,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -433,7 +433,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -487,8 +487,8 @@
       "hideTimeOverride": false,
       "id": 24,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
@@ -500,7 +500,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -509,14 +509,15 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "increase(immich_server_stats_usage_growth[1d])",
+          "expr": "delta(immich_server_stats_usage_growth[24h])",
           "instant": false,
+          "interval": "",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily data growth",
       "type": "stat"
     },
@@ -553,8 +554,8 @@
       "hideTimeOverride": false,
       "id": 26,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -566,7 +567,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -574,7 +575,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_usage_growth[1w])",
+          "expr": "delta(immich_server_stats_usage_growth[1w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -620,7 +621,11 @@
         "legend": {
           "displayMode": "list",
           "placement": "right",
-          "showLegend": true
+          "showLegend": true,
+          "values": [
+            "percent",
+            "value"
+          ]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -684,8 +689,8 @@
       "hideTimeOverride": false,
       "id": 28,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -697,7 +702,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -705,7 +710,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_usage_growth[4w])",
+          "expr": "delta(immich_server_stats_usage_growth[4w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -748,7 +753,7 @@
       "hideTimeOverride": false,
       "id": 30,
       "options": {
-        "colorMode": "background",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -761,7 +766,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -769,7 +774,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_usage_growth[1y])",
+          "expr": "delta(immich_server_stats_usage_growth[1y])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -786,6 +791,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -806,7 +812,7 @@
         "x": 0,
         "y": 11
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 32,
       "options": {
         "colorMode": "value",
@@ -822,7 +828,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -830,13 +836,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_photos_growth[24h])",
+          "expr": "delta(immich_server_stats_photos_growth[24h])",
+          "interval": "",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily photos growth",
       "type": "stat"
     },
@@ -847,6 +854,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -867,7 +875,7 @@
         "x": 6,
         "y": 11
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 34,
       "options": {
         "colorMode": "value",
@@ -883,7 +891,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -891,7 +899,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_photos_growth[7d])",
+          "expr": "delta(immich_server_stats_photos_growth[1w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -906,6 +914,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -937,7 +946,11 @@
         "legend": {
           "displayMode": "table",
           "placement": "right",
-          "showLegend": true
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -961,13 +974,14 @@
           "editorMode": "code",
           "exemplar": false,
           "expr": "immich_server_stats_photos_by_users",
+          "format": "time_series",
           "instant": false,
           "legendFormat": "{{firstName}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Photos",
+      "title": "Total photos by user",
       "type": "piechart"
     },
     {
@@ -980,6 +994,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -999,7 +1014,7 @@
         "x": 0,
         "y": 15
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 36,
       "options": {
         "colorMode": "value",
@@ -1015,7 +1030,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1023,7 +1038,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_photos_growth[4w])",
+          "expr": "delta(immich_server_stats_photos_growth[4w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1043,6 +1058,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1062,7 +1078,7 @@
         "x": 6,
         "y": 15
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 38,
       "options": {
         "colorMode": "value",
@@ -1078,7 +1094,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1086,7 +1102,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_photos_growth[1y])",
+          "expr": "delta(immich_server_stats_photos_growth[1y])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1122,6 +1138,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
@@ -1181,7 +1198,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "immich_server_stats_photos_by_users",
+          "expr": "delta(immich_server_stats_photos_by_users[4w])",
           "legendFormat": "{{firstName}}",
           "range": true,
           "refId": "A"
@@ -1217,6 +1234,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
@@ -1276,7 +1294,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "immich_server_stats_photos_by_users",
+          "expr": "delta(immich_server_stats_photos_by_users[1y])",
           "legendFormat": "{{firstName}}",
           "range": true,
           "refId": "A"
@@ -1296,12 +1314,14 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1314,7 +1334,7 @@
         "x": 0,
         "y": 33
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 42,
       "options": {
         "colorMode": "value",
@@ -1330,7 +1350,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1338,13 +1358,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_videos_growth[1d])",
+          "expr": "delta(immich_server_stats_videos_growth[24h])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "timeFrom": "now/d",
+      "timeFrom": "1d",
       "title": "Daily video growth",
       "type": "stat"
     },
@@ -1358,12 +1378,14 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1376,7 +1398,7 @@
         "x": 6,
         "y": 33
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 40,
       "options": {
         "colorMode": "value",
@@ -1392,7 +1414,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1400,7 +1422,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_videos_growth[1w])",
+          "expr": "delta(immich_server_stats_videos_growth[1w])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1446,7 +1468,10 @@
           "displayMode": "list",
           "placement": "right",
           "showLegend": true,
-          "values": []
+          "values": [
+            "percent",
+            "value"
+          ]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -1474,7 +1499,7 @@
           "refId": "A"
         }
       ],
-      "title": "Videos",
+      "title": "Total videos by user",
       "type": "piechart"
     },
     {
@@ -1487,12 +1512,14 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1505,7 +1532,7 @@
         "x": 0,
         "y": 37
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 44,
       "options": {
         "colorMode": "value",
@@ -1521,7 +1548,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1529,7 +1556,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_videos_growth[4w])\r\n",
+          "expr": "delta(immich_server_stats_videos_growth[4w])\r\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1549,12 +1576,14 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1567,7 +1596,7 @@
         "x": 6,
         "y": 37
       },
-      "hideTimeOverride": true,
+      "hideTimeOverride": false,
       "id": 46,
       "options": {
         "colorMode": "value",
@@ -1583,7 +1612,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "10.0.2",
+      "pluginVersion": "10.1.5",
       "targets": [
         {
           "datasource": {
@@ -1591,7 +1620,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(immich_server_stats_videos_growth[1y])\r\n",
+          "expr": "delta(immich_server_stats_videos_growth[1y])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1617,6 +1646,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "right",
+            "axisSoftMin": 9000,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 30,
@@ -1626,12 +1656,13 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
             },
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 1,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -1639,7 +1670,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1650,7 +1681,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1658,12 +1690,13 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 41
       },
-      "id": 20,
+      "hideTimeOverride": false,
+      "id": 49,
       "options": {
         "legend": {
           "calcs": [],
@@ -1683,14 +1716,14 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "immich_server_stats_videos_by_users",
+          "expr": "delta(immich_server_stats_videos_by_users[4w])",
           "legendFormat": "{{firstName}}",
           "range": true,
           "refId": "A"
         }
       ],
       "timeFrom": "1M",
-      "title": "Videos growth",
+      "title": "Videos Growth",
       "type": "timeseries"
     },
     {
@@ -1709,6 +1742,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "right",
+            "axisSoftMin": 9000,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 30,
@@ -1718,12 +1752,13 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
             },
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 1,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -1731,7 +1766,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1742,7 +1777,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -1750,12 +1786,13 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 48
       },
-      "id": 48,
+      "hideTimeOverride": false,
+      "id": 50,
       "options": {
         "legend": {
           "calcs": [],
@@ -1775,18 +1812,18 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "immich_server_stats_videos_by_users",
+          "expr": "delta(immich_server_stats_videos_by_users[1y])",
           "legendFormat": "{{firstName}}",
           "range": true,
           "refId": "A"
         }
       ],
       "timeFrom": "1y",
-      "title": "Videos growth",
+      "title": "Videos Growth",
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
+  "refresh": "30s",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -1802,6 +1839,6 @@
   "timezone": "",
   "title": "immich",
   "uid": "ZWWp3aa4k",
-  "version": 9,
+  "version": 31,
   "weekStart": ""
 }
