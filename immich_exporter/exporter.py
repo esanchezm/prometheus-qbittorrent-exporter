@@ -52,7 +52,7 @@ class ImmichMetricsCollector:
     def get_immich_users_stat_growth(self):
 
         try:
-            endpoint_user_stats = "/api/server-info/stats"
+            endpoint_user_stats = "/api/server-info/statistics"
             response_user_stats = requests.request(
                 "GET",
                 self.combine_url(endpoint_user_stats),
@@ -105,7 +105,7 @@ class ImmichMetricsCollector:
 
         global response_user_stats
         try:
-            endpoint_user_stats = "/api/server-info/stats"
+            endpoint_user_stats = "/api/server-info/statistics"
             response_user_stats = requests.request(
                 "GET",
                 self.combine_url(endpoint_user_stats),
@@ -113,7 +113,9 @@ class ImmichMetricsCollector:
                          "x-api-key": self.config["token"]}
             )
         except requests.exceptions.RequestException as e:
-            logger.error(f"Couldn't get server version: {e}")
+            logger.error(f"API ERROR: can't get server statistic: {e}")
+            logger.info(f"API TOKEN CORRECT?")
+            logger.info(f"API ENDPOINT CHANGED?")
 
         metrics = []
         # To get the user count an api-endpoint exists but this works too. As a result one less api call is being made
@@ -133,10 +135,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_photos_by_users",
                     "value": userData[x]['photos'],
                     "labels": {
-                        "firstName": userData[x]["userFirstName"],
+                        "firstName": userData[x]["userName"],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userName']} "
 
                 }
             )
@@ -148,10 +150,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_videos_by_users",
                     "value": userData[x]['videos'],
                     "labels": {
-                        "firstName": userData[x]["userFirstName"],
+                        "firstName": userData[x]["userName"],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userName']} "
 
                 }
             )
@@ -162,10 +164,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_usage_by_users",
                     "value": (userData[x]['usage']),
                     "labels": {
-                        "firstName": userData[x]["userFirstName"],
+                        "firstName": userData[x]["userName"],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userFirstName']} "
+                    "help": f"Number of photos by user {userData[x]['userName']} "
 
                 }
             )
@@ -317,7 +319,7 @@ def check_server_up(immichHost, immichPort):
             continue
         break
     logger.info(f"Found immich up and running at " + immichHost + ":" + immichPort + ".")
-    logger.info(f"Attempting to connect")
+    logger.info(f"Attempting to connect to immich")
     time.sleep(1)
     logger.info("Exporter v1.0.6")
 
@@ -338,7 +340,7 @@ def check_immich_api_key(immichHost, immichPort, immichApiKey):
             logger.error({e})
             time.sleep(3)
             continue
-        logger.info(f"Connected to immich successfully")
+        logger.info(f"Success.")
         break
 
 

@@ -6,10 +6,11 @@ with open("README.md", "r") as fh:
 setup(
     name='prometheus-immich-exporter',
     packages=['immich_exporter'],
-    version='1.0.6',
+    version='1.0.7',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='Prometheus exporter for immich',
+   # forked from:
    # author='Esteban Sanchez',
    # author_email='esteban.sanchez@gmail.com',
    # url='https://github.com/esanchezm/prometheus-qbittorrent-exporter',
