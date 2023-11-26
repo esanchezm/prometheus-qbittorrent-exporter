@@ -135,10 +135,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_photos_by_users",
                     "value": userData[x]['photos'],
                     "labels": {
-                        "firstName": userData[x]["userName"],
+                        "firstName": userData[x]["userName"].split()[0],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userName']} "
+                    "help": f"Number of photos by user {userData[x]['userName'].split()[0]} "
 
                 }
             )
@@ -150,10 +150,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_videos_by_users",
                     "value": userData[x]['videos'],
                     "labels": {
-                        "firstName": userData[x]["userName"],
+                        "firstName": userData[x]["userName"].split()[0],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userName']} "
+                    "help": f"Number of photos by user {userData[x]['userName'].split()[0]} "
 
                 }
             )
@@ -164,10 +164,10 @@ class ImmichMetricsCollector:
                     "name": f"{self.config['metrics_prefix']}_server_stats_usage_by_users",
                     "value": (userData[x]['usage']),
                     "labels": {
-                        "firstName": userData[x]["userName"],
+                        "firstName": userData[x]["userName"].split()[0],
 
                     },
-                    "help": f"Number of photos by user {userData[x]['userName']} "
+                    "help": f"Number of photos by user {userData[x]['userName'].split()[0]} "
 
                 }
             )
