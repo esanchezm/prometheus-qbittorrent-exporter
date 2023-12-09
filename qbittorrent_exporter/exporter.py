@@ -143,6 +143,20 @@ class QbittorrentMetricsCollector:
                 help_text="Data uploaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_alltime_dl",
+                value=response.get("alltime_dl", 0),
+                labels={},  # no labels in the example
+                help_text="Total data downloaded, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_alltime_ul",
+                value=response.get("alltime_ul", 0),
+                labels={},  # no labels in the example
+                help_text="Total data uploaded, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
         ]
 
     def _fetch_categories(self) -> dict:
