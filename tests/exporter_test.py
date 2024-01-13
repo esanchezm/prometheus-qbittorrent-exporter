@@ -64,7 +64,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertIsInstance(result, GaugeMetricFamily)
         self.assertEqual(result.name, "test_gauge")
         self.assertEqual(result.documentation, "Test Gauge")
-        self.assertEqual(result.samples[0].labels, {"label1": "value1", "server": "localhost:8080"})
+        self.assertEqual(
+            result.samples[0].labels, {"label1": "value1", "server": "localhost:8080"}
+        )
         self.assertEqual(result.samples[0].value, 10)
 
     def test_collect_counter(self):
@@ -82,7 +84,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertIsInstance(result, CounterMetricFamily)
         self.assertEqual(result.name, "test_counter")
         self.assertEqual(result.documentation, "Test Counter")
-        self.assertEqual(result.samples[0].labels, {"label2": "value2", "server": "localhost:8080"})
+        self.assertEqual(
+            result.samples[0].labels, {"label2": "value2", "server": "localhost:8080"}
+        )
         self.assertEqual(result.samples[0].value, 230)
 
     def test_get_qbittorrent_metrics(self):
