@@ -86,20 +86,22 @@ class QbittorrentMetricsCollector:
         """
         Returns metrics about the state of the qbittorrent server.
         """
-        response: dict[str, Any] = {}
+        maindata: dict[str, Any] = {}
         version: str = ""
 
         # Fetch data from API
         try:
-            response = self.client.transfer.info
+            maindata = self.client.sync_maindata()
             version = self.client.app.version
         except Exception as e:
             logger.error(f"Couldn't get server info: {e}")
 
+        server_state = maindata.get("server_state", {})
+
         return [
             Metric(
                 name=f"{self.config['metrics_prefix']}_up",
-                value=bool(response),
+                value=bool(server_state),
                 labels={"version": version, "server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is answering requests from this"
@@ -108,7 +110,7 @@ class QbittorrentMetricsCollector:
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_connected",
-                value=response.get("connection_status", "") == "connected",
+                value=server_state.get("connection_status", "") == "connected",
                 labels={"server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
@@ -117,7 +119,7 @@ class QbittorrentMetricsCollector:
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_firewalled",
-                value=response.get("connection_status", "") == "firewalled",
+                value=server_state.get("connection_status", "") == "firewalled",
                 labels={"server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
@@ -126,22 +128,36 @@ class QbittorrentMetricsCollector:
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_dht_nodes",
-                value=response.get("dht_nodes", 0),
+                value=server_state.get("dht_nodes", 0),
                 labels={"server": self.server},
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_dl_info_data",
-                value=response.get("dl_info_data", 0),
+                value=server_state.get("dl_info_data", 0),
                 labels={"server": self.server},
                 help_text="Data downloaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_up_info_data",
-                value=response.get("up_info_data", 0),
+                value=server_state.get("up_info_data", 0),
                 labels={"server": self.server},
                 help_text="Data uploaded since the server started, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_alltime_dl",
+                value=server_state.get("alltime_dl", 0),
+                labels={"server": self.server},
+                help_text="Total historical data downloaded, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_alltime_ul",
+                value=server_state.get("alltime_ul", 0),
+                labels={"server": self.server},
+                help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
         ]

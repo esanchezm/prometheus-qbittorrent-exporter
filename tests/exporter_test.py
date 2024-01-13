@@ -223,7 +223,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         )
 
     def test_get_qbittorrent_status_metrics(self):
-        self.collector.client.transfer.info = {"connection_status": "connected"}
+        self.collector.client.sync_maindata.return_value = {
+            "server_state": {"connection_status": "connected"}
+        }
         self.collector.client.app.version = "1.2.3"
 
         expected_metrics = [
@@ -272,6 +274,20 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 value=0,
                 labels={"server": "localhost:8080"},
                 help_text="Data uploaded since the server started, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name="qbittorrent_alltime_dl",
+                value=0,
+                labels={"server": "localhost:8080"},
+                help_text="Total historical data downloaded, in bytes.",
+                metric_type=MetricType.COUNTER,
+            ),
+            Metric(
+                name="qbittorrent_alltime_ul",
+                value=0,
+                labels={"server": "localhost:8080"},
+                help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
         ]
