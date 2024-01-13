@@ -2,8 +2,9 @@ FROM python:3.12-alpine
 
 # Install package
 WORKDIR /code
-COPY . .
-RUN pip3 install .
+COPY pyproject.toml pdm.lock README.md ./
+COPY qbittorrent_exporter ./qbittorrent_exporter
+RUN pip install --no-cache-dir .
 
 ENV QBITTORRENT_HOST=""
 ENV QBITTORRENT_PORT=""
