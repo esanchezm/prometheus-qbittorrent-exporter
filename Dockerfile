@@ -4,8 +4,7 @@ FROM python:3.12-alpine
 WORKDIR /code
 COPY pyproject.toml pdm.lock README.md ./
 COPY qbittorrent_exporter ./qbittorrent_exporter
-RUN pip install . \
-    && rm -rf /root/.cache/pip
+RUN pip install --no-cache-dir .
 
 ENV QBITTORRENT_HOST=""
 ENV QBITTORRENT_PORT=""
