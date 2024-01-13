@@ -35,7 +35,7 @@ class Metric:
 
     name: str
     value: Any
-    labels: dict[str, str] = field(default_factory=lambda: {})  # Default to empty dict
+    labels: dict[str, str] = field(default_factory=lambda: {})
     help_text: str = ""
     metric_type: MetricType = MetricType.GAUGE
 
@@ -50,6 +50,7 @@ class QbittorrentMetricsCollector:
             password=config["password"],
             VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
         )
+        self.server = f"{config['host']}:{config['port']}"
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
@@ -99,7 +100,7 @@ class QbittorrentMetricsCollector:
             Metric(
                 name=f"{self.config['metrics_prefix']}_up",
                 value=bool(response),
-                labels={"version": version},
+                labels={"version": version, "server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is answering requests from this"
                     " exporter. A `version` label with the server version is added."
@@ -108,7 +109,7 @@ class QbittorrentMetricsCollector:
             Metric(
                 name=f"{self.config['metrics_prefix']}_connected",
                 value=response.get("connection_status", "") == "connected",
-                labels={},  # no labels in the example
+                labels={"server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network."
@@ -117,7 +118,7 @@ class QbittorrentMetricsCollector:
             Metric(
                 name=f"{self.config['metrics_prefix']}_firewalled",
                 value=response.get("connection_status", "") == "firewalled",
-                labels={},  # no labels in the example
+                labels={"server": self.server},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network but is behind a firewall."
@@ -126,20 +127,20 @@ class QbittorrentMetricsCollector:
             Metric(
                 name=f"{self.config['metrics_prefix']}_dht_nodes",
                 value=response.get("dht_nodes", 0),
-                labels={},  # no labels in the example
+                labels={"server": self.server},
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_dl_info_data",
                 value=response.get("dl_info_data", 0),
-                labels={},  # no labels in the example
+                labels={"server": self.server},
                 help_text="Data downloaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_up_info_data",
                 value=response.get("up_info_data", 0),
-                labels={},  # no labels in the example
+                labels={"server": self.server},
                 help_text="Data uploaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
@@ -190,6 +191,7 @@ class QbittorrentMetricsCollector:
             labels={
                 "status": state,
                 "category": category,
+                "server": self.server,
             },
             help_text=f"Number of torrents in status {state} under category {category}",
         )
