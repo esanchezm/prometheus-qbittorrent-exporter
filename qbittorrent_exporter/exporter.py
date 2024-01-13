@@ -149,15 +149,15 @@ class QbittorrentMetricsCollector:
             Metric(
                 name=f"{self.config['metrics_prefix']}_alltime_dl",
                 value=server_state.get("alltime_dl", 0),
-                labels={},  # no labels in the example
-                help_text="Total data downloaded, in bytes.",
+                labels={"server": self.server},
+                help_text="Total historical data downloaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name=f"{self.config['metrics_prefix']}_alltime_ul",
                 value=server_state.get("alltime_ul", 0),
-                labels={},  # no labels in the example
-                help_text="Total data uploaded, in bytes.",
+                labels={"server": self.server},
+                help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
         ]
