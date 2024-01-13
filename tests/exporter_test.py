@@ -54,7 +54,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             name="test_gauge",
             metric_type=MetricType.GAUGE,
             help_text="Test Gauge",
-            labels={"label1": "value1"},
+            labels={"label1": "value1", "server": "localhost:8080"},
             value=10,
         )
         self.collector.get_qbittorrent_metrics = MagicMock(return_value=[mock_metric])
@@ -64,7 +64,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertIsInstance(result, GaugeMetricFamily)
         self.assertEqual(result.name, "test_gauge")
         self.assertEqual(result.documentation, "Test Gauge")
-        self.assertEqual(result.samples[0].labels, {"label1": "value1"})
+        self.assertEqual(
+            result.samples[0].labels, {"label1": "value1", "server": "localhost:8080"}
+        )
         self.assertEqual(result.samples[0].value, 10)
 
     def test_collect_counter(self):
@@ -72,7 +74,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             name="test_counter",
             metric_type=MetricType.COUNTER,
             help_text="Test Counter",
-            labels={"label2": "value2"},
+            labels={"label2": "value2", "server": "localhost:8080"},
             value=230,
         )
         self.collector.get_qbittorrent_metrics = MagicMock(return_value=[mock_metric])
@@ -82,7 +84,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertIsInstance(result, CounterMetricFamily)
         self.assertEqual(result.name, "test_counter")
         self.assertEqual(result.documentation, "Test Counter")
-        self.assertEqual(result.samples[0].labels, {"label2": "value2"})
+        self.assertEqual(
+            result.samples[0].labels, {"label2": "value2", "server": "localhost:8080"}
+        )
         self.assertEqual(result.samples[0].value, 230)
 
     def test_get_qbittorrent_metrics(self):
@@ -226,7 +230,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_up",
                 value=True,
-                labels={"version": "1.2.3"},
+                labels={"version": "1.2.3", "server": "localhost:8080"},
                 help_text=(
                     "Whether the qBittorrent server is answering requests from this"
                     " exporter. A `version` label with the server version is added."
@@ -235,7 +239,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_connected",
                 value=True,
-                labels={},
+                labels={"server": "localhost:8080"},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network."
@@ -244,7 +248,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_firewalled",
                 value=False,
-                labels={},
+                labels={"server": "localhost:8080"},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network but is behind a firewall."
@@ -253,20 +257,20 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_dht_nodes",
                 value=0,
-                labels={},
+                labels={"server": "localhost:8080"},
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
                 name="qbittorrent_dl_info_data",
                 value=0,
-                labels={},
+                labels={"server": "localhost:8080"},
                 help_text="Data downloaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name="qbittorrent_up_info_data",
                 value=0,
-                labels={},
+                labels={"server": "localhost:8080"},
                 help_text="Data uploaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
