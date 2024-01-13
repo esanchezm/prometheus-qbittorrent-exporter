@@ -223,7 +223,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         )
 
     def test_get_qbittorrent_status_metrics(self):
-        self.collector.client.sync_maindata.return_value = {"server_state": {"connection_status": "connected"}}
+        self.collector.client.sync_maindata.return_value = {
+            "server_state": {"connection_status": "connected"}
+        }
         self.collector.client.app.version = "1.2.3"
 
         expected_metrics = [
