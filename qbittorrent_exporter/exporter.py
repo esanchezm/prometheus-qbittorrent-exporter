@@ -96,7 +96,7 @@ class QbittorrentMetricsCollector:
         except Exception as e:
             logger.error(f"Couldn't get server info: {e}")
 
-        server_state = maindata.get('server_state', {})
+        server_state = maindata.get("server_state", {})
 
         return [
             Metric(
