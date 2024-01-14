@@ -43,6 +43,8 @@ The application reads configuration using environment variables:
 | -------------------------- | ------------- | ----------- |
 | `QBITTORRENT_HOST`         |               | qbittorrent server hostname |
 | `QBITTORRENT_PORT`         |               | qbittorrent server port |
+| `QBITTORRENT_SSL`          | `False`       | Whether to use SSL to connect or not. Will be forced to `True` when using port 443  |
+| `QBITTORRENT_URL_BASE`     | `""`          | qbittorrent server path or base URL |
 | `QBITTORRENT_USER`         | `""`          | qbittorrent username |
 | `QBITTORRENT_PASS`         | `""`          | qbittorrent password |
 | `EXPORTER_PORT`            | `8000`        | Exporter listening port |

@@ -43,14 +43,20 @@ class Metric:
 class QbittorrentMetricsCollector:
     def __init__(self, config: dict) -> None:
         self.config = config
+        self.server = f"{config['host']}:{config['port']}"
+        self.protocol = "http"
+
+        if config["url_base"]:
+            self.server = f"{self.server}/{config['url_base']}"
+        if config["ssl"] or config["port"] == "443":
+            self.protocol = "https"
+        self.connection_string = f"{self.protocol}://{self.server}"
         self.client = Client(
-            host=config["host"],
-            port=config["port"],
+            host=self.connection_string,
             username=config["username"],
             password=config["password"],
             VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
         )
-        self.server = f"{config['host']}:{config['port']}"
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
@@ -269,6 +275,8 @@ def get_config() -> dict:
     return {
         "host": _get_config_value("QBITTORRENT_HOST", ""),
         "port": _get_config_value("QBITTORRENT_PORT", ""),
+        "ssl": (_get_config_value("QBITTORRENT_SSL", "False") == "True"),
+        "url_base": _get_config_value("QBITTORRENT_URL_BASE", ""),
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
         "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
