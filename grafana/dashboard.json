@@ -988,7 +988,7 @@
         },
         "definition": "label_values(qbittorrent_up,server)",
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": "Server",
         "multi": false,
         "name": "server",
@@ -1045,6 +1045,6 @@
   "timezone": "",
   "title": "Qbittorrent",
   "uid": "eKyTETFMk",
-  "version": 55,
+  "version": 58,
   "weekStart": ""
 }
