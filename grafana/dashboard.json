@@ -533,7 +533,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "(sum by (app) (qbittorrent_up_info_data_total{server=\"$server\"})) / (sum by (app) (qbittorrent_dl_info_data_total{server=\"$server\"}))",
+          "expr": "(sum by (app) (qbittorrent_alltime_ul_total{server=\"$server\"})) / (sum by (app) (qbittorrent_alltime_dl_total{server=\"$server\"}))",
           "instant": false,
           "interval": "",
           "legendFormat": "{{label_name}}",
