@@ -18,7 +18,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.config = {
             "host": "localhost",
             "port": "8080",
-            "ssl": "False",
+            "ssl": False,
             "url_base": "qbt/",
             "username": "user",
             "password": "pass",
@@ -44,7 +44,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
     def test_init(self):
         self.assertEqual(self.collector.config, self.config)
         self.mock_client.assert_called_once_with(
-            host=f"https://{self.config['host']}:{self.config['port']}/qbt/",
+            host=f"http://{self.config['host']}:{self.config['port']}/qbt/",
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
@@ -295,3 +295,49 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
         metrics = self.collector._get_qbittorrent_status_metrics()
         self.assertEqual(metrics, expected_metrics)
+
+    def test_server_string_with_different_settings(self):
+        self.assertEqual(self.collector.server, "localhost:8080/qbt/")
+        self.assertEqual(self.collector.connection_string, "http://localhost:8080/qbt/")
+
+        config = {
+            "host": "qbittorrent.example.com",
+            "port": "8081",
+            "ssl": False,
+            "url_base": "qbittorrent/",
+            "username": "user",
+            "password": "pass",
+            "verify_webui_certificate": False,
+            "metrics_prefix": "qbittorrent",
+        }
+        collector = QbittorrentMetricsCollector(config)
+        self.assertEqual(collector.server, "qbittorrent.example.com:8081/qbittorrent/")
+        self.assertEqual(collector.connection_string, "http://qbittorrent.example.com:8081/qbittorrent/")
+
+        config = {
+            "host": "qbittorrent2.example.com",
+            "port": "8084",
+            "ssl": True,
+            "url_base": "",
+            "username": "user",
+            "password": "pass",
+            "verify_webui_certificate": True,
+            "metrics_prefix": "qbittorrent",
+        }
+        collector = QbittorrentMetricsCollector(config)
+        self.assertEqual(collector.server, "qbittorrent2.example.com:8084")
+        self.assertEqual(collector.connection_string, "https://qbittorrent2.example.com:8084")
+
+        config = {
+            "host": "qbittorrent3.example.com",
+            "port": "443",
+            "ssl": False,  # Will be enforced to True because port is 443
+            "url_base": "server/",
+            "username": "user",
+            "password": "pass",
+            "verify_webui_certificate": True,
+            "metrics_prefix": "qbittorrent",
+        }
+        collector = QbittorrentMetricsCollector(config)
+        self.assertEqual(collector.server, "qbittorrent3.example.com:443/server/")
+        self.assertEqual(collector.connection_string, "https://qbittorrent3.example.com:443/server/")
