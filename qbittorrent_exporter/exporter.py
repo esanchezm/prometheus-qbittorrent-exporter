@@ -50,8 +50,9 @@ class QbittorrentMetricsCollector:
             self.server = f"{self.server}/{config['url_base']}"
         if config["ssl"] or config["port"] == "443":
             self.protocol = "https"
+        self.connection_string = f"{self.protocol}://{self.server}"
         self.client = Client(
-            host=f"{self.protocol}://{self.server}",
+            host=self.connection_string,
             username=config["username"],
             password=config["password"],
             VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
