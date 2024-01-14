@@ -43,14 +43,19 @@ class Metric:
 class QbittorrentMetricsCollector:
     def __init__(self, config: dict) -> None:
         self.config = config
+        self.server = f"{config['host']}:{config['port']}"
+        self.protocol = "http"
+
+        if config["url_base"]:
+            self.server = f"{self.server}/{config['url_base']}"
+        if config["ssl"] or config["port"] == "443":
+            self.protocol = "https"
         self.client = Client(
-            host=config["host"],
-            port=config["port"],
+            host=f"{self.protocol}://{self.server}",
             username=config["username"],
             password=config["password"],
             VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
         )
-        self.server = f"{config['host']}:{config['port']}"
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """

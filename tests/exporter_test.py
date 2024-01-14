@@ -18,6 +18,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.config = {
             "host": "localhost",
             "port": "8080",
+            "ssl": "False",
+            "url_base": "qbt/",
             "username": "user",
             "password": "pass",
             "verify_webui_certificate": False,
@@ -42,8 +44,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
     def test_init(self):
         self.assertEqual(self.collector.config, self.config)
         self.mock_client.assert_called_once_with(
-            host=self.config["host"],
-            port=self.config["port"],
+            host=f"https://{self.config['host']}:{self.config['port']}/qbt/",
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
@@ -232,7 +233,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_up",
                 value=True,
-                labels={"version": "1.2.3", "server": "localhost:8080"},
+                labels={"version": "1.2.3", "server": "localhost:8080/qbt/"},
                 help_text=(
                     "Whether the qBittorrent server is answering requests from this"
                     " exporter. A `version` label with the server version is added."
@@ -241,7 +242,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_connected",
                 value=True,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network."
@@ -250,7 +251,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_firewalled",
                 value=False,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text=(
                     "Whether the qBittorrent server is connected to the Bittorrent"
                     " network but is behind a firewall."
@@ -259,34 +260,34 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             Metric(
                 name="qbittorrent_dht_nodes",
                 value=0,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
                 name="qbittorrent_dl_info_data",
                 value=0,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text="Data downloaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name="qbittorrent_up_info_data",
                 value=0,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text="Data uploaded since the server started, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name="qbittorrent_alltime_dl",
                 value=0,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text="Total historical data downloaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
             Metric(
                 name="qbittorrent_alltime_ul",
                 value=0,
-                labels={"server": "localhost:8080"},
+                labels={"server": "localhost:8080/qbt/"},
                 help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
