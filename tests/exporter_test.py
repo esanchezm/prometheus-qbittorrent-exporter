@@ -312,7 +312,10 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent.example.com:8081/qbittorrent/")
-        self.assertEqual(collector.connection_string, "http://qbittorrent.example.com:8081/qbittorrent/")
+        self.assertEqual(
+            collector.connection_string,
+            "http://qbittorrent.example.com:8081/qbittorrent/",
+        )
 
         config = {
             "host": "qbittorrent2.example.com",
@@ -326,7 +329,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent2.example.com:8084")
-        self.assertEqual(collector.connection_string, "https://qbittorrent2.example.com:8084")
+        self.assertEqual(
+            collector.connection_string, "https://qbittorrent2.example.com:8084"
+        )
 
         config = {
             "host": "qbittorrent3.example.com",
@@ -340,4 +345,6 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent3.example.com:443/server/")
-        self.assertEqual(collector.connection_string, "https://qbittorrent3.example.com:443/server/")
+        self.assertEqual(
+            collector.connection_string, "https://qbittorrent3.example.com:443/server/"
+        )
