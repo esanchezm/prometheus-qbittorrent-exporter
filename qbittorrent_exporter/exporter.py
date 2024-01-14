@@ -269,6 +269,8 @@ def get_config() -> dict:
     return {
         "host": _get_config_value("QBITTORRENT_HOST", ""),
         "port": _get_config_value("QBITTORRENT_PORT", ""),
+        "ssl": (_get_config_value("QBITTORRENT_SSL", "False") == "True"),
+        "url_base": _get_config_value("QBITTORRENT_URL_BASE", ""),
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
         "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
