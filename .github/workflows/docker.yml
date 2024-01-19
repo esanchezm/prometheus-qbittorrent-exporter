@@ -3,8 +3,7 @@ name: Docker
 on:
   push:
     branches: [ master ]
-  release:
-    types: [ created ]
+    tags: [ '*' ]
 
 jobs:
   build:
