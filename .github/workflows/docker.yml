@@ -25,7 +25,7 @@ jobs:
           flavor: |
             latest=true
           tags: |
-            type=semver,pattern=v{{version}}
+            type=pep440,pattern=v{{version}}
             type=ref,event=branch
             type=sha
           images: ${{ github.actor }}/prometheus-qbittorrent-exporter
@@ -51,7 +51,7 @@ jobs:
           flavor: |
             latest=true
           tags: |
-            type=semver,pattern=v{{version}}
+            type=pep440,pattern=v{{version}}
             type=ref,event=branch
             type=sha
           images: ghcr.io/${{ github.actor }}/prometheus-qbittorrent-exporter
