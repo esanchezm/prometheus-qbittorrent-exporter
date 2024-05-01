@@ -348,3 +348,19 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(
             collector.connection_string, "https://qbittorrent3.example.com:443/server/"
         )
+
+        config = {
+            "host": "qbittorrent4.example.com",
+            "port": "443",
+            "ssl": True,
+            "url_base": "server/",
+            "username": "user",
+            "password": "pass",
+            "verify_webui_certificate": True,
+            "metrics_prefix": "qbittorrent",
+        }
+        collector = QbittorrentMetricsCollector(config)
+        self.assertEqual(collector.server, "qbittorrent4.example.com:443/server/")
+        self.assertEqual(
+            collector.connection_string, "https://qbittorrent4.example.com:443/server/"
+        )
