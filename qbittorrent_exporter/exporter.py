@@ -85,6 +85,43 @@ class QbittorrentMetricsCollector:
         metrics: list[Metric] = []
         metrics.extend(self._get_qbittorrent_status_metrics())
         metrics.extend(self._get_qbittorrent_torrent_tags_metrics())
+        metrics.extend(self._get_qbittorrent_by_torrent_metrics())
+
+        return metrics
+
+    def _get_qbittorrent_by_torrent_metrics(self) -> list[Metric]:
+        if not self.config["export_metrics_by_torrent"]:
+            return []
+
+        torrents = self._fetch_torrents()
+
+        metrics: list[Metric] = []
+
+        for torrent in torrents:
+            metrics.append(
+                Metric(
+                    name=f"{self.config['metrics_prefix']}_torrent_size",
+                    value=torrent["size"],
+                    labels={
+                        "name": torrent["name"],
+                        "category": torrent["category"],
+                        "server": self.server,
+                    },
+                    help_text="Size of the torrent",
+                )
+            )
+            metrics.append(
+                Metric(
+                    name=f"{self.config['metrics_prefix']}_torrent_downloaded",
+                    value=torrent["downloaded"],
+                    labels={
+                        "name": torrent["name"],
+                        "category": torrent["category"],
+                        "server": self.server,
+                    },
+                    help_text="Downloaded data of the torrent",
+                )
+            )
 
         return metrics
 
@@ -282,6 +319,9 @@ def get_config() -> dict:
         "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": _get_config_value("METRICS_PREFIX", "qbittorrent"),
+        "export_metrics_by_torrent": (
+            _get_config_value("EXPORT_METRICS_BY_TORRENT", "False") == "True"
+        ),
         "verify_webui_certificate": (
             _get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True"
         ),
