@@ -13,7 +13,17 @@ repos:
         name: ruff
         stages: [commit]
         types: [python]
-        entry: pdm run ruff .
+        entry: pdm run ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+        fail_fast: true
+        always_run: true
+      - id: isort
+        name: isort
+        stages: [commit]
+        types: [python]
+        entry: pdm run isort . --profile black
         language: system
         pass_filenames: false
         always_run: true

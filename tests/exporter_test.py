@@ -2,13 +2,13 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from prometheus_client.metrics_core import CounterMetricFamily, GaugeMetricFamily
+from qbittorrentapi import TorrentStates
 
 from qbittorrent_exporter.exporter import (
     Metric,
     MetricType,
     QbittorrentMetricsCollector,
 )
-from qbittorrentapi import TorrentStates
 
 
 class TestQbittorrentMetricsCollector(unittest.TestCase):
