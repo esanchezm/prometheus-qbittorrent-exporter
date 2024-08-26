@@ -364,7 +364,7 @@ def main():
 
     # Start server
     start_http_server(config["exporter_port"], config["exporter_address"])
-    logger.info(f"Exporter listening on port {config['exporter_port']}")
+    logger.info(f"Exporter listening on {config['exporter_address']}:{config['exporter_port']}")
 
     while not signal_handler.is_shutting_down():
         time.sleep(1)
