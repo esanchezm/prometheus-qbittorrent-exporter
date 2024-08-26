@@ -90,7 +90,7 @@ class QbittorrentMetricsCollector:
         return metrics
 
     def _get_qbittorrent_by_torrent_metrics(self) -> list[Metric]:
-        if not self.config["export_metrics_by_torrent"]:
+        if not self.config.get("export_metrics_by_torrent", False):
             return []
 
         torrents = self._fetch_torrents()
@@ -119,7 +119,7 @@ class QbittorrentMetricsCollector:
                         "category": torrent["category"],
                         "server": self.server,
                     },
-                    help_text="Downloaded data of the torrent",
+                    help_text="Downloaded data for the torrent",
                 )
             )
 
