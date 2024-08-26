@@ -316,6 +316,7 @@ def get_config() -> dict:
         "url_base": _get_config_value("QBITTORRENT_URL_BASE", ""),
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
+        "exporter_address": _get_config_value("EXPORTER_ADDRESS", "0.0.0.0"),
         "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": _get_config_value("METRICS_PREFIX", "qbittorrent"),
@@ -362,7 +363,7 @@ def main():
     REGISTRY.register(QbittorrentMetricsCollector(config))  # type: ignore
 
     # Start server
-    start_http_server(config["exporter_port"])
+    start_http_server(config["exporter_port"], config["exporter_address"])
     logger.info(f"Exporter listening on port {config['exporter_port']}")
 
     while not signal_handler.is_shutting_down():

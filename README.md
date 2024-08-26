@@ -47,6 +47,7 @@ The application reads configuration using environment variables:
 | `QBITTORRENT_URL_BASE`     | `""`          | qbittorrent server path or base URL |
 | `QBITTORRENT_USER`         | `""`          | qbittorrent username |
 | `QBITTORRENT_PASS`         | `""`          | qbittorrent password |
+| `EXPORTER_ADDRESS`         | `0.0.0.0`     | Exporter listening IP address |
 | `EXPORTER_PORT`            | `8000`        | Exporter listening port |
 | `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 | `METRICS_PREFIX`           | `qbittorrent` | Prefix to add to all the metrics |
