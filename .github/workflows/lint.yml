@@ -18,13 +18,13 @@ jobs:
         python-version: ["3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@ddc33ca746b5716353581f988b29464200212702 # v3
       - name: Install dependencies
         run: pdm install
       - name: Lint with black
@@ -35,7 +35,7 @@ jobs:
         run: |
           pdm run pytest --junit-xml=test-results.xml
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@567cc7f8dcea3eba5da355f6ebc95663310d8a07 # v2
         if: always()
         with:
           files: |
@@ -48,11 +48,11 @@ jobs:
           pdm run coverage report -m
       - name: Coverage comment
         id: coverage_comment
-        uses: py-cov-action/python-coverage-comment-action@v3
+        uses: py-cov-action/python-coverage-comment-action@1265d8203a13109276adcb9ec04fa1e40e38f4f9 # v3
         with:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action
