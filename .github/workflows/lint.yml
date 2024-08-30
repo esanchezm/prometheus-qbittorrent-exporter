@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@ddc33ca746b5716353581f988b29464200212702 # v3
+        uses: pdm-project/setup-pdm@568ddd69406b30de1774ec0044b73ae06e716aa4 # v4
       - name: Install dependencies
         run: pdm install
       - name: Lint with black
