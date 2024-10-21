@@ -48,7 +48,7 @@ jobs:
           pdm run coverage report -m
       - name: Coverage comment
         id: coverage_comment
-        uses: py-cov-action/python-coverage-comment-action@3a591f9d4d095e8079eef2e56e5a5a33e85bfeff # v3
+        uses: py-cov-action/python-coverage-comment-action@00b351d2d23426bd6a6c6ad8a507a93e5ad96cb4 # v3
         with:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Store Pull Request comment to be posted
