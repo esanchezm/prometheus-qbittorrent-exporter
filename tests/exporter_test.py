@@ -264,6 +264,12 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
+                name="qbittorrent_total_peer_connections",
+                value=0,
+                labels={"server": "localhost:8080/qbt/"},
+                help_text="Total number of peer connections.",
+            ),
+            Metric(
                 name="qbittorrent_dl_info_data",
                 value=0,
                 labels={"server": "localhost:8080/qbt/"},
