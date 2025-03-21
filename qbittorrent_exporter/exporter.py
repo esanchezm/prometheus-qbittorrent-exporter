@@ -176,6 +176,12 @@ class QbittorrentMetricsCollector:
                 help_text="Number of DHT nodes connected to.",
             ),
             Metric(
+                name=f"{self.config['metrics_prefix']}_total_peer_connections",
+                value=server_state.get("total_peer_connections", 0),
+                labels={"server": self.server},
+                help_text="Total number of peer connections.",
+            ),
+            Metric(
                 name=f"{self.config['metrics_prefix']}_dl_info_data",
                 value=server_state.get("dl_info_data", 0),
                 labels={"server": self.server},
