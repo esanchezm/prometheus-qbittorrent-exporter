@@ -88,23 +88,23 @@ class QbittorrentMetricsCollector:
         torrent_size_gauge = GaugeMetricFamily(
             f"{self.config['metrics_prefix']}_torrent_size",
             "Size of the torrent",
-            labels=["name", "category", "server"]
+            labels=["name", "category", "server"],
         )
 
         torrent_downloaded_gauge = GaugeMetricFamily(
             f"{self.config['metrics_prefix']}_torrent_downloaded",
             "Downloaded data for the torrent",
-            labels=["name", "category", "server"]
+            labels=["name", "category", "server"],
         )
 
         for torrent in self._fetch_torrents():
             torrent_size_gauge.add_metric(
                 value=torrent["size"],
-                labels=[torrent["name"], torrent["category"], self.server]
+                labels=[torrent["name"], torrent["category"], self.server],
             )
             torrent_downloaded_gauge.add_metric(
                 value=torrent["downloaded"],
-                labels=[torrent["name"], torrent["category"], self.server]
+                labels=[torrent["name"], torrent["category"], self.server],
             )
 
         return [torrent_size_gauge, torrent_downloaded_gauge]
@@ -241,7 +241,7 @@ class QbittorrentMetricsCollector:
         torrents_count_gauge = GaugeMetricFamily(
             f"{self.config['metrics_prefix']}_torrents_count",
             "Number of torrents",
-            labels=["status", "category", "server"]
+            labels=["status", "category", "server"],
         )
 
         for category in categories:
@@ -252,7 +252,7 @@ class QbittorrentMetricsCollector:
                 )
                 torrents_count_gauge.add_metric(
                     value=len(state_torrents),
-                    labels=[state.value, category, self.server]
+                    labels=[state.value, category, self.server],
                 )
 
         return torrents_count_gauge
