@@ -1,4 +1,4 @@
-ARG PYTHON_BASE=3.13-alpine@sha256:657dbdb20479a6523b46c06114c8fec7db448232f956a429d3cc0606d30c1b59
+ARG PYTHON_BASE=3.13-alpine@sha256:18159b2be11db91f84b8f8f655cd860f805dbd9e49a583ddaac8ab39bf4fe1a7
 FROM python:$PYTHON_BASE AS builder
 
 RUN pip install -U pdm
