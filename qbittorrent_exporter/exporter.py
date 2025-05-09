@@ -62,9 +62,7 @@ class QbittorrentMetricsCollector:
         """
         Yields Prometheus gauges and counters from metrics collected from qbittorrent.
         """
-        metrics: list[Metric] = self.get_qbittorrent_metrics()
-
-        for metric in metrics:
+        for metric in self._get_qbittorrent_status_metrics():
             if metric.metric_type == MetricType.COUNTER:
                 prom_metric = CounterMetricFamily(
                     metric.name, metric.help_text, labels=list(metric.labels.keys())
@@ -78,52 +76,38 @@ class QbittorrentMetricsCollector:
             )
             yield prom_metric
 
-    def get_qbittorrent_metrics(self) -> list[Metric]:
-        """
-        Calls and combines qbittorrent state metrics with torrent metrics.
-        """
-        metrics: list[Metric] = []
-        metrics.extend(self._get_qbittorrent_status_metrics())
-        metrics.extend(self._get_qbittorrent_torrent_tags_metrics())
-        metrics.extend(self._get_qbittorrent_by_torrent_metrics())
+        for gauge in self._get_qbittorrent_by_torrent_metric_gauges():
+            yield gauge
 
-        return metrics
+        yield self._get_qbittorrent_torrent_tags_metrics_gauge()
 
-    def _get_qbittorrent_by_torrent_metrics(self) -> list[Metric]:
+    def _get_qbittorrent_by_torrent_metric_gauges(self) -> list[GaugeMetricFamily]:
         if not self.config.get("export_metrics_by_torrent", False):
             return []
 
-        torrents = self._fetch_torrents()
+        torrent_size_gauge = GaugeMetricFamily(
+            f"{self.config['metrics_prefix']}_torrent_size",
+            "Size of the torrent",
+            labels=["name", "category", "server"],
+        )
 
-        metrics: list[Metric] = []
+        torrent_downloaded_gauge = GaugeMetricFamily(
+            f"{self.config['metrics_prefix']}_torrent_downloaded",
+            "Downloaded data for the torrent",
+            labels=["name", "category", "server"],
+        )
 
-        for torrent in torrents:
-            metrics.append(
-                Metric(
-                    name=f"{self.config['metrics_prefix']}_torrent_size",
-                    value=torrent["size"],
-                    labels={
-                        "name": torrent["name"],
-                        "category": torrent["category"],
-                        "server": self.server,
-                    },
-                    help_text="Size of the torrent",
-                )
+        for torrent in self._fetch_torrents():
+            torrent_size_gauge.add_metric(
+                value=torrent["size"],
+                labels=[torrent["name"], torrent["category"], self.server],
             )
-            metrics.append(
-                Metric(
-                    name=f"{self.config['metrics_prefix']}_torrent_downloaded",
-                    value=torrent["downloaded"],
-                    labels={
-                        "name": torrent["name"],
-                        "category": torrent["category"],
-                        "server": self.server,
-                    },
-                    help_text="Downloaded data for the torrent",
-                )
+            torrent_downloaded_gauge.add_metric(
+                value=torrent["downloaded"],
+                labels=[torrent["name"], torrent["category"], self.server],
             )
 
-        return metrics
+        return [torrent_size_gauge, torrent_downloaded_gauge]
 
     def _get_qbittorrent_status_metrics(self) -> list[Metric]:
         """
@@ -247,26 +231,18 @@ class QbittorrentMetricsCollector:
         """Filters torrents by the given state."""
         return [torrent for torrent in torrents if torrent["state"] == state.value]
 
-    def _construct_metric(self, state: str, category: str, count: int) -> Metric:
-        """Constructs and returns a metric object with a torrent count and appropriate
-        labels."""
-        return Metric(
-            name=f"{self.config['metrics_prefix']}_torrents_count",
-            value=count,
-            labels={
-                "status": state,
-                "category": category,
-                "server": self.server,
-            },
-            help_text=f"Number of torrents in status {state} under category {category}",
-        )
-
-    def _get_qbittorrent_torrent_tags_metrics(self) -> list[Metric]:
+    def _get_qbittorrent_torrent_tags_metrics_gauge(self) -> GaugeMetricFamily:
         categories = self._fetch_categories()
         torrents = self._fetch_torrents()
 
         metrics: list[Metric] = []
         categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}
+
+        torrents_count_gauge = GaugeMetricFamily(
+            f"{self.config['metrics_prefix']}_torrents_count",
+            "Number of torrents",
+            labels=["status", "category", "server"],
+        )
 
         for category in categories:
             category_torrents = self._filter_torrents_by_category(category, torrents)
@@ -274,12 +250,12 @@ class QbittorrentMetricsCollector:
                 state_torrents = self._filter_torrents_by_state(
                     state, category_torrents
                 )
-                metric = self._construct_metric(
-                    state.value, category, len(state_torrents)
+                torrents_count_gauge.add_metric(
+                    value=len(state_torrents),
+                    labels=[state.value, category, self.server],
                 )
-                metrics.append(metric)
 
-        return metrics
+        return torrents_count_gauge
 
 
 class ShutdownSignalHandler:

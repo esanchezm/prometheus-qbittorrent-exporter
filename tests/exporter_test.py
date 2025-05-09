@@ -24,6 +24,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "password": "pass",
             "verify_webui_certificate": False,
             "metrics_prefix": "qbittorrent",
+            "export_metrics_by_torrent": True,
         }
         self.torrentsState = [
             {"name": "Torrent DOWNLOADING 1", "state": TorrentStates.DOWNLOADING},
@@ -50,48 +51,87 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
         )
 
-    def test_collect_gauge(self):
-        mock_metric = Metric(
-            name="test_gauge",
-            metric_type=MetricType.GAUGE,
-            help_text="Test Gauge",
-            labels={"label1": "value1", "server": "localhost:8080"},
-            value=10,
-        )
-        self.collector.get_qbittorrent_metrics = MagicMock(return_value=[mock_metric])
+    def test_collect_by_torrent_metric_gauges(self):
+        # Mock the return value of self.client.torrents.info()
+        self.collector.client.torrents.info.return_value = [
+            {
+                "name": "Torrent 1",
+                "size": 100,
+                "category": "category1",
+                "downloaded": 100,
+            },
+            {
+                "name": "Torrent 2",
+                "size": 200,
+                "category": "category2",
+                "downloaded": 200,
+            },
+            {
+                "name": "Torrent 3",
+                "size": 300,
+                "category": "category3",
+                "downloaded": 300,
+            },
+        ]
+        # Mock the client.torrent_categories.categories attribute
+        self.collector.client.torrent_categories.categories = {
+            "category1": {"name": "Category 1"},
+            "category2": {"name": "Category 2"},
+            "category3": {"name": "Category 3"},
+        }
 
-        result = next(self.collector.collect())
+        result = self.collector._get_qbittorrent_by_torrent_metric_gauges()
+
+        torrent_size_metric = result[0]
+        self.assertIsInstance(torrent_size_metric, GaugeMetricFamily)
+        self.assertEqual(torrent_size_metric.name, "qbittorrent_torrent_size")
+        self.assertEqual(torrent_size_metric.documentation, "Size of the torrent")
+        self.assertEqual(
+            torrent_size_metric.samples[0].labels,
+            {
+                "name": "Torrent 1",
+                "category": "category1",
+                "server": "localhost:8080/qbt/",
+            },
+        )
+        self.assertEqual(torrent_size_metric.samples[0].value, 100)
+
+        torrent_downloaded_metric = result[1]
+        self.assertIsInstance(torrent_downloaded_metric, GaugeMetricFamily)
+        self.assertEqual(
+            torrent_downloaded_metric.name, "qbittorrent_torrent_downloaded"
+        )
+        self.assertEqual(
+            torrent_downloaded_metric.documentation, "Downloaded data for the torrent"
+        )
+        self.assertEqual(
+            torrent_downloaded_metric.samples[0].labels,
+            {
+                "name": "Torrent 1",
+                "category": "category1",
+                "server": "localhost:8080/qbt/",
+            },
+        )
+        self.assertEqual(torrent_downloaded_metric.samples[0].value, 100)
+
+    def test_collect_torrent_tags_metric_gauge(self):
+        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge()
 
         self.assertIsInstance(result, GaugeMetricFamily)
-        self.assertEqual(result.name, "test_gauge")
-        self.assertEqual(result.documentation, "Test Gauge")
+        self.assertEqual(result.name, "qbittorrent_torrents_count")
+        self.assertEqual(result.documentation, "Number of torrents")
         self.assertEqual(
-            result.samples[0].labels, {"label1": "value1", "server": "localhost:8080"}
+            result.samples[0].labels,
+            {
+                "status": "error",
+                "category": "Uncategorized",
+                "server": "localhost:8080/qbt/",
+            },
         )
-        self.assertEqual(result.samples[0].value, 10)
+        self.assertEqual(result.samples[0].value, 0)
 
-    def test_collect_counter(self):
-        mock_metric = Metric(
-            name="test_counter",
-            metric_type=MetricType.COUNTER,
-            help_text="Test Counter",
-            labels={"label2": "value2", "server": "localhost:8080"},
-            value=230,
-        )
-        self.collector.get_qbittorrent_metrics = MagicMock(return_value=[mock_metric])
-
-        result = next(self.collector.collect())
-
-        self.assertIsInstance(result, CounterMetricFamily)
-        self.assertEqual(result.name, "test_counter")
-        self.assertEqual(result.documentation, "Test Counter")
-        self.assertEqual(
-            result.samples[0].labels, {"label2": "value2", "server": "localhost:8080"}
-        )
-        self.assertEqual(result.samples[0].value, 230)
-
-    def test_get_qbittorrent_metrics(self):
-        metrics = self.collector.get_qbittorrent_metrics()
+    def test_collect(self):
+        metrics = list(self.collector.collect())
         self.assertNotEqual(len(metrics), 0)
 
     def test_fetch_categories(self):
@@ -191,37 +231,6 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "Books", self.torrentsCategories
         )
         self.assertEqual(result, expected_result)
-
-    def test_construct_metric_with_valid_state_and_category(self):
-        state = "downloading"
-        category = "movies"
-        count = 10
-
-        metric = self.collector._construct_metric(state, category, count)
-
-        self.assertEqual(metric.name, "qbittorrent_torrents_count")
-        self.assertEqual(metric.value, count)
-        self.assertEqual(metric.labels["status"], state)
-        self.assertEqual(metric.labels["category"], category)
-        self.assertEqual(
-            metric.help_text,
-            f"Number of torrents in status {state} under category {category}",
-        )
-
-    def test_construct_metric_with_empty_state_and_category(self):
-        state = ""
-        category = ""
-        count = 5
-
-        metric = self.collector._construct_metric(state, category, count)
-
-        self.assertEqual(metric.name, "qbittorrent_torrents_count")
-        self.assertEqual(metric.value, count)
-        self.assertEqual(metric.labels["status"], state)
-        self.assertEqual(metric.labels["category"], category)
-        self.assertEqual(
-            metric.help_text, "Number of torrents in status  under category "
-        )
 
     def test_get_qbittorrent_status_metrics(self):
         self.collector.client.sync_maindata.return_value = {
