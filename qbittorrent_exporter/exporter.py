@@ -97,6 +97,12 @@ class QbittorrentMetricsCollector:
             labels=["name", "category", "server"],
         )
 
+        torrent_uploaded_gauge = GaugeMetricFamily(
+            f"{self.config['metrics_prefix']}_torrent_uploaded",
+            "Uploaded data for the torrent",
+            labels=["name", "category", "server"],
+        )
+
         for torrent in self._fetch_torrents():
             torrent_size_gauge.add_metric(
                 value=torrent["size"],
@@ -106,8 +112,12 @@ class QbittorrentMetricsCollector:
                 value=torrent["downloaded"],
                 labels=[torrent["name"], torrent["category"], self.server],
             )
+            torrent_uploaded_gauge.add_metric(
+                value=torrent["uploaded"],
+                labels=[torrent["name"], torrent["category"], self.server],
+            )
 
-        return [torrent_size_gauge, torrent_downloaded_gauge]
+        return [torrent_size_gauge, torrent_downloaded_gauge, torrent_uploaded_gauge]
 
     def _get_qbittorrent_status_metrics(self) -> list[Metric]:
         """
