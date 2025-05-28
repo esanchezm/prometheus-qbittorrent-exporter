@@ -59,18 +59,21 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 "size": 100,
                 "category": "category1",
                 "downloaded": 100,
+                "uploaded": 100,
             },
             {
                 "name": "Torrent 2",
                 "size": 200,
                 "category": "category2",
                 "downloaded": 200,
+                "uploaded": 200,
             },
             {
                 "name": "Torrent 3",
                 "size": 300,
                 "category": "category3",
                 "downloaded": 300,
+                "uploaded": 300,
             },
         ]
         # Mock the client.torrent_categories.categories attribute
@@ -113,6 +116,22 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             },
         )
         self.assertEqual(torrent_downloaded_metric.samples[0].value, 100)
+
+        torrent_uploaded_metric = result[2]
+        self.assertIsInstance(torrent_uploaded_metric, GaugeMetricFamily)
+        self.assertEqual(torrent_uploaded_metric.name, "qbittorrent_torrent_uploaded")
+        self.assertEqual(
+            torrent_uploaded_metric.documentation, "Uploaded data for the torrent"
+        )
+        self.assertEqual(
+            torrent_uploaded_metric.samples[0].labels,
+            {
+                "name": "Torrent 1",
+                "category": "category1",
+                "server": "localhost:8080/qbt/",
+            },
+        )
+        self.assertEqual(torrent_uploaded_metric.samples[0].value, 100)
 
     def test_collect_torrent_tags_metric_gauge(self):
         result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge()
