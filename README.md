@@ -4,7 +4,7 @@
 <img src="https://raw.githubusercontent.com/esanchezm/prometheus-qbittorrent-exporter/master/logo.png" height="230">
 </p>
 
-A prometheus exporter for qBitorrent. Get metrics from a server and offers them in a prometheus format.
+A prometheus exporter for qBittorrent. Get metrics from a server and offers them in a prometheus format.
 
 ![](https://img.shields.io/github/license/esanchezm/prometheus-qbittorrent-exporter?style=for-the-badge) ![](https://img.shields.io/maintenance/yes/2024?style=for-the-badge) ![](https://img.shields.io/docker/pulls/esanchezm/prometheus-qbittorrent-exporter?style=for-the-badge) ![](https://img.shields.io/github/forks/esanchezm/prometheus-qbittorrent-exporter?style=for-the-badge) ![](https://img.shields.io/github/stars/esanchezm/prometheus-qbittorrent-exporter?style=for-the-badge) ![](https://img.shields.io/python/required-version-toml?tomlFilePath=https://raw.githubusercontent.com/esanchezm/prometheus-qbittorrent-exporter/master/pyproject.toml&style=for-the-badge) [![Coverage badge](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/esanchezm/prometheus-qbittorrent-exporter/python-coverage-comment-action-data/endpoint.json&label=tests%20coverage&style=for-the-badge)](https://htmlpreview.github.io/?https://github.com/esanchezm/prometheus-qbittorrent-exporter/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
