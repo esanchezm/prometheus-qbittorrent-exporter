@@ -51,17 +51,20 @@ class QbittorrentMetricsCollector:
         if config["ssl"] or config["port"] == "443":
             self.protocol = "https"
         self.connection_string = f"{self.protocol}://{self.server}"
+
+    def _create_client(self) -> None:
         self.client = Client(
             host=self.connection_string,
-            username=config["username"],
-            password=config["password"],
-            VERIFY_WEBUI_CERTIFICATE=config["verify_webui_certificate"],
+            username=self.config["username"],
+            password=self.config["password"],
+            VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
         )
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
         Yields Prometheus gauges and counters from metrics collected from qbittorrent.
         """
+        self._create_client()
         for metric in self._get_qbittorrent_status_metrics():
             if metric.metric_type == MetricType.COUNTER:
                 prom_metric = CounterMetricFamily(

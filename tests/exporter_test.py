@@ -12,9 +12,9 @@ from qbittorrent_exporter.exporter import (
 
 
 class TestQbittorrentMetricsCollector(unittest.TestCase):
-    @patch("qbittorrent_exporter.exporter.Client")
-    def setUp(self, mock_client):
-        self.mock_client = mock_client
+    def setUp(self):
+        self.patcher = patch("qbittorrent_exporter.exporter.Client")
+        self.mock_client = self.patcher.start()
         self.config = {
             "host": "localhost",
             "port": "8080",
@@ -41,15 +41,37 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             {"name": "Torrent Uncategorized 1", "category": "Uncategorized"},
         ]
         self.collector = QbittorrentMetricsCollector(self.config)
+        # Pre-create the client so tests that manipulate self.collector.client directly work.
+        self.collector._create_client()
+
+    def tearDown(self):
+        self.patcher.stop()
 
     def test_init(self):
         self.assertEqual(self.collector.config, self.config)
+        # Client must not be instantiated during __init__; verify with a fresh collector.
+        self.mock_client.reset_mock()
+        collector = QbittorrentMetricsCollector(self.config)
+        self.mock_client.assert_not_called()
+
+    def test_create_client(self):
+        self.mock_client.reset_mock()
+        self.collector._create_client()
         self.mock_client.assert_called_once_with(
             host=f"http://{self.config['host']}:{self.config['port']}/qbt/",
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
         )
+
+    def test_collect_recreates_client(self):
+        """Each call to collect() must create a fresh Client so that
+        stale internal state (e.g. the HTTP fallback triggered by qbittorrentapi after
+        an SSL failure) does not persist across scrapes."""
+        self.mock_client.reset_mock()
+        list(self.collector.collect())
+        list(self.collector.collect())
+        self.assertEqual(self.mock_client.call_count, 2)
 
     def test_collect_by_torrent_metric_gauges(self):
         # Mock the return value of self.client.torrents.info()
