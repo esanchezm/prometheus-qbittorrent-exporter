@@ -65,6 +65,7 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 | `qbittorrent_connected`                                         | gauge    | Whether the qBittorrent server is connected to the Bittorrent network.  |
 | `qbittorrent_firewalled`                                        | gauge    | Whether the qBittorrent server is connected to the Bittorrent network but is behind a firewall.  |
 | `qbittorrent_dht_nodes`                                         | gauge    | Number of DHT nodes connected to. |
+| `qbittorrent_total_peer_connections`                            | gauge    | Total number of peer connections. |
 | `qbittorrent_dl_info_data`                                      | counter  | Data downloaded since the server started, in bytes. |
 | `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes. |
 | `qbittorrent_alltime_dl_total`                                  | counter  | Total historical data downloaded, in bytes. |
