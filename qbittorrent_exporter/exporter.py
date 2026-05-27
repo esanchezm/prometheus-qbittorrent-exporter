@@ -55,7 +55,7 @@ class QbittorrentMetricsCollector:
     def _create_client(self) -> None:
         client_args: dict[str, Any] = {
             "host": self.connection_string,
-            "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"]
+            "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"],
         }
 
         # qBittorrent 5.2+ supports API key auth via bearer tokens
