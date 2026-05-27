@@ -73,7 +73,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         list(self.collector.collect())
         list(self.collector.collect())
         self.assertEqual(self.mock_client.call_count, 2)
-    
+
     def test_create_client_with_api_key(self):
         self.mock_client.reset_mock()
         self.collector.config["api_key"] = "qbt_abcdefghijklmnopqrstuvwxyz12"

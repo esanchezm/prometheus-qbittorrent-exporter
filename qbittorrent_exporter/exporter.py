@@ -60,12 +60,12 @@ class QbittorrentMetricsCollector:
 
         # qBittorrent 5.2+ supports API key auth via bearer tokens
         if self.config.get("api_key"):
-            logger.info("Utilizing API key based authentication")
+            logger.debug("Utilizing API key based authentication")
             client_args["EXTRA_HEADERS"] = {
                 "Authorization": f"Bearer {self.config['api_key']}"
             }
         else:
-            logger.info("Utilizing username and password based authentication")
+            logger.debug("Utilizing username and password based authentication")
             client_args["username"] = self.config["username"]
             client_args["password"] = self.config["password"]
 
