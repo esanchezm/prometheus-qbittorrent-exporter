@@ -53,12 +53,23 @@ class QbittorrentMetricsCollector:
         self.connection_string = f"{self.protocol}://{self.server}"
 
     def _create_client(self) -> None:
-        self.client = Client(
-            host=self.connection_string,
-            username=self.config["username"],
-            password=self.config["password"],
-            VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
-        )
+        client_args: dict[str, Any] = {
+            "host": self.connection_string,
+            "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"]
+        }
+
+        # qBittorrent 5.2+ supports API key auth via bearer tokens
+        if self.config.get("api_key"):
+            logger.info("Utilizing API key based authentication")
+            client_args["EXTRA_HEADERS"] = {
+                "Authorization": f"Bearer {self.config['api_key']}"
+            }
+        else:
+            logger.info("Utilizing username and password based authentication")
+            client_args["username"] = self.config["username"]
+            client_args["password"] = self.config["password"]
+
+        self.client = Client(**client_args)
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
@@ -301,6 +312,7 @@ def get_config() -> dict:
         "url_base": _get_config_value("QBITTORRENT_URL_BASE", ""),
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
+        "api_key": _get_config_value("QBITTORRENT_API_KEY", ""),
         "exporter_address": _get_config_value("EXPORTER_ADDRESS", "0.0.0.0"),
         "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),

@@ -22,6 +22,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "url_base": "qbt/",
             "username": "user",
             "password": "pass",
+            "api_key": "",
             "verify_webui_certificate": False,
             "metrics_prefix": "qbittorrent",
             "export_metrics_by_torrent": True,
@@ -72,6 +73,22 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         list(self.collector.collect())
         list(self.collector.collect())
         self.assertEqual(self.mock_client.call_count, 2)
+    
+    def test_create_client_with_api_key(self):
+        self.mock_client.reset_mock()
+        self.collector.config["api_key"] = "qbt_abcdefghijklmnopqrstuvwxyz12"
+
+        self.collector._create_client()
+
+        kwargs = self.mock_client.call_args.kwargs
+        self.assertEqual(
+            kwargs["host"], f"http://{self.config['host']}:{self.config['port']}/qbt/"
+        )
+        auth_header = kwargs["EXTRA_HEADERS"]["Authorization"]
+        self.assertEqual(auth_header.split()[0], "Bearer")
+        self.assertTrue(auth_header.endswith(self.collector.config["api_key"]))
+        self.assertNotIn("username", kwargs)
+        self.assertNotIn("password", kwargs)
 
     def test_collect_by_torrent_metric_gauges(self):
         # Mock the return value of self.client.torrents.info()

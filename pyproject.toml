@@ -8,7 +8,7 @@ authors = [
 dependencies = [
     "prometheus-client>=0.20.0",
     "python-json-logger>=2.0.7",
-    "qbittorrent-api>=2024.5.62",
+    "qbittorrent-api>=2026.5.1"
 ]
 requires-python = ">=3.11"
 readme = "README.md"
