@@ -13,12 +13,20 @@ dependencies = [
 requires-python = ">=3.11"
 readme = "README.md"
 keywords = ["prometheus", "qbittorrent"]
-license = {text = "GPL-3.0"}
-classifiers = []
+license = "GPL-3.0-only"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Monitoring",
+]
 
 [project.urls]
 Homepage = "https://github.com/esanchezm/prometheus-qbittorrent-exporter"
-Downloads = "https://github.com/esanchezm/prometheus-qbittorrent-exporter/archive/1.5.1.tar.gz"
 
 [project.scripts]
 qbittorrent-exporter = "qbittorrent_exporter.exporter:main"
