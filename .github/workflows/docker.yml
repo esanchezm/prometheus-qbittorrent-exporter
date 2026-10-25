@@ -2,7 +2,8 @@ name: Docker
 
 on:
   push:
-    branches: [ master ]
+    # Every branch gets an image tagged with its name; bot branches are skipped.
+    branches: [ '**', '!renovate/**', '!dependabot/**' ]
     tags: [ '*' ]
 
 jobs:
@@ -22,13 +23,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6
         with:
+          # `latest` is only added for release (version tag) builds, never for branches.
           flavor: |
-            latest=true
+            latest=auto
           tags: |
             type=pep440,prefix=v,pattern={{version}}
             type=ref,event=branch
             type=sha
-          images: ${{ github.actor }}/prometheus-qbittorrent-exporter
+          images: ${{ github.repository_owner }}/prometheus-qbittorrent-exporter
 
       - name: Login to DockerHub
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
@@ -48,13 +50,14 @@ jobs:
         id: metaghcr
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6
         with:
+          # `latest` is only added for release (version tag) builds, never for branches.
           flavor: |
-            latest=true
+            latest=auto
           tags: |
             type=pep440,prefix=v,pattern={{version}}
             type=ref,event=branch
             type=sha
-          images: ghcr.io/${{ github.actor }}/prometheus-qbittorrent-exporter
+          images: ghcr.io/${{ github.repository_owner }}/prometheus-qbittorrent-exporter
 
       - name: Login to Github Container Registry
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
