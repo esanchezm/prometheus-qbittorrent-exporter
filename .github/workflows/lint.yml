@@ -40,7 +40,7 @@ jobs:
         run: |
           pdm run pytest --junit-xml=test-results.xml
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
+        uses: EnricoMi/publish-unit-test-result-action@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2
         if: always()
         with:
           files: |
