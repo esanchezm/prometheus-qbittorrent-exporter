@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from prometheus_client.metrics_core import CounterMetricFamily, GaugeMetricFamily
-from qbittorrentapi import TorrentStates
+from qbittorrentapi import Client, TorrentStates
+from requests import Response
 from requests.exceptions import Timeout
 
 from qbittorrent_exporter.exporter import (
@@ -64,7 +65,29 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
+            REQUESTS_ARGS={"timeout": 5},
         )
+
+    def test_logout_preflight_and_logout_have_timeouts(self):
+        self.mock_client.side_effect = Client
+        client = self.collector._create_client()
+        response = Response()
+        response.status_code = 200
+        response.url = "http://localhost:8080/qbt/"
+        response._content = b"5.2.2"
+
+        with patch(
+            "requests.sessions.Session.request", return_value=response
+        ) as request:
+            client.auth_log_out(requests_args={"timeout": 5})
+
+        post_requests = [c for c in request.call_args_list if c.args[0] == "post"]
+        self.assertEqual(
+            [c.args[1].rsplit("/", 2)[-2:] for c in post_requests],
+            [["app", "version"], ["auth", "logout"]],
+        )
+        for call in request.call_args_list:
+            self.assertEqual(call.kwargs["timeout"], 5)
 
     def test_collect_recreates_client(self):
         """Each call to collect() must create a fresh Client so that

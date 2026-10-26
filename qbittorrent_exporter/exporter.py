@@ -68,6 +68,8 @@ class QbittorrentMetricsCollector:
             logger.debug("Utilizing username and password based authentication")
             client_args["username"] = self.config["username"]
             client_args["password"] = self.config["password"]
+            # auth_log_out's is_logged_in preflight ignores per-call requests_args.
+            client_args["REQUESTS_ARGS"] = {"timeout": 5}
 
         return Client(**client_args)
 
