@@ -52,7 +52,7 @@ class QbittorrentMetricsCollector:
             self.protocol = "https"
         self.connection_string = f"{self.protocol}://{self.server}"
 
-    def _create_client(self) -> None:
+    def _create_client(self) -> Client:
         client_args: dict[str, Any] = {
             "host": self.connection_string,
             "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"],
@@ -69,16 +69,15 @@ class QbittorrentMetricsCollector:
             client_args["username"] = self.config["username"]
             client_args["password"] = self.config["password"]
 
-        self.client = Client(**client_args)
+        return Client(**client_args)
 
     def collect(self) -> Iterable[GaugeMetricFamily | CounterMetricFamily]:
         """
         Yields Prometheus gauges and counters from metrics collected from qbittorrent.
         """
-        self._create_client()
-        client = self.client
+        client = self._create_client()
         try:
-            for metric in self._get_qbittorrent_status_metrics():
+            for metric in self._get_qbittorrent_status_metrics(client):
                 if metric.metric_type == MetricType.COUNTER:
                     prom_metric = CounterMetricFamily(
                         metric.name, metric.help_text, labels=list(metric.labels.keys())
@@ -92,10 +91,10 @@ class QbittorrentMetricsCollector:
                 )
                 yield prom_metric
 
-            for gauge in self._get_qbittorrent_by_torrent_metric_gauges():
+            for gauge in self._get_qbittorrent_by_torrent_metric_gauges(client):
                 yield gauge
 
-            yield self._get_qbittorrent_torrent_tags_metrics_gauge()
+            yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
         finally:
             # Release the WebUI session before discarding this scrape's client.
             # Bearer-token authentication does not create a WebUI session.
@@ -105,7 +104,9 @@ class QbittorrentMetricsCollector:
                 except Exception as e:
                     logger.error(f"Couldn't log out of qBittorrent: {e}")
 
-    def _get_qbittorrent_by_torrent_metric_gauges(self) -> list[GaugeMetricFamily]:
+    def _get_qbittorrent_by_torrent_metric_gauges(
+        self, client: Client
+    ) -> list[GaugeMetricFamily]:
         if not self.config.get("export_metrics_by_torrent", False):
             return []
 
@@ -121,7 +122,7 @@ class QbittorrentMetricsCollector:
             labels=["name", "category", "server"],
         )
 
-        for torrent in self._fetch_torrents():
+        for torrent in self._fetch_torrents(client):
             torrent_size_gauge.add_metric(
                 value=torrent["size"],
                 labels=[torrent["name"], torrent["category"], self.server],
@@ -133,7 +134,7 @@ class QbittorrentMetricsCollector:
 
         return [torrent_size_gauge, torrent_downloaded_gauge]
 
-    def _get_qbittorrent_status_metrics(self) -> list[Metric]:
+    def _get_qbittorrent_status_metrics(self, client: Client) -> list[Metric]:
         """
         Returns metrics about the state of the qbittorrent server.
         """
@@ -142,8 +143,8 @@ class QbittorrentMetricsCollector:
 
         # Fetch data from API
         try:
-            maindata = self.client.sync_maindata()
-            version = self.client.app.version
+            maindata = client.sync_maindata()
+            version = client.app.version
         except Exception as e:
             logger.error(f"Couldn't get server info: {e}")
 
@@ -219,10 +220,10 @@ class QbittorrentMetricsCollector:
             ),
         ]
 
-    def _fetch_categories(self) -> dict:
+    def _fetch_categories(self, client: Client) -> dict:
         """Fetches all categories in use from qbittorrent."""
         try:
-            categories = dict(self.client.torrent_categories.categories)
+            categories = dict(client.torrent_categories.categories)
             for key, value in categories.items():
                 categories[key] = dict(value)  # type: ignore
             return categories
@@ -230,10 +231,10 @@ class QbittorrentMetricsCollector:
             logger.error(f"Couldn't fetch categories: {e}")
             return {}
 
-    def _fetch_torrents(self) -> list[dict]:
+    def _fetch_torrents(self, client: Client) -> list[dict]:
         """Fetches torrents from qbittorrent"""
         try:
-            return [dict(_attr_dict) for _attr_dict in self.client.torrents.info()]
+            return [dict(_attr_dict) for _attr_dict in client.torrents.info()]
         except Exception as e:
             logger.error(f"Couldn't fetch torrents: {e}")
             return []
@@ -255,9 +256,11 @@ class QbittorrentMetricsCollector:
         """Filters torrents by the given state."""
         return [torrent for torrent in torrents if torrent["state"] == state.value]
 
-    def _get_qbittorrent_torrent_tags_metrics_gauge(self) -> GaugeMetricFamily:
-        categories = self._fetch_categories()
-        torrents = self._fetch_torrents()
+    def _get_qbittorrent_torrent_tags_metrics_gauge(
+        self, client: Client
+    ) -> GaugeMetricFamily:
+        categories = self._fetch_categories(client)
+        torrents = self._fetch_torrents(client)
 
         metrics: list[Metric] = []
         categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}

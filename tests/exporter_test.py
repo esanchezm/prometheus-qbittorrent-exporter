@@ -42,8 +42,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             {"name": "Torrent Uncategorized 1", "category": "Uncategorized"},
         ]
         self.collector = QbittorrentMetricsCollector(self.config)
-        # Pre-create the client so tests that manipulate self.collector.client directly work.
-        self.collector._create_client()
+        # Create a client for tests that call metric helpers directly.
+        self.client = self.collector._create_client()
 
     def tearDown(self):
         self.patcher.stop()
@@ -82,14 +82,56 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             list(self.collector.collect())
             client.auth_log_out.assert_called_once_with()
 
+    def test_overlapping_scrapes_use_separate_clients(self):
+        clients = [MagicMock(), MagicMock()]
+        self.mock_client.side_effect = clients
+        for index, client in enumerate(clients):
+            client.sync_maindata.return_value = {
+                "server_state": {"connection_status": "connected"}
+            }
+            client.app.version = f"5.2.{index}"
+            client.torrent_categories.categories = {}
+            client.torrents.info.return_value = [
+                {
+                    "name": f"Torrent {index}",
+                    "size": index + 1,
+                    "downloaded": index,
+                    "category": "",
+                    "state": TorrentStates.DOWNLOADING,
+                }
+            ]
+
+        first = self.collector.collect()
+        second = self.collector.collect()
+        try:
+            self.assertEqual(next(first).samples[0].labels["version"], "5.2.0")
+            self.assertEqual(next(second).samples[0].labels["version"], "5.2.1")
+
+            # Finish the first scrape while the second still owns an active session.
+            first_metrics = list(first)
+            clients[0].auth_log_out.assert_called_once_with()
+            clients[1].auth_log_out.assert_not_called()
+            second_metrics = list(second)
+
+            for index, metrics in enumerate((first_metrics, second_metrics)):
+                size = next(m for m in metrics if m.name == "qbittorrent_torrent_size")
+                self.assertEqual(size.samples[0].labels["name"], f"Torrent {index}")
+                self.assertEqual(size.samples[0].value, index + 1)
+                clients[index].sync_maindata.assert_called_once_with()
+                self.assertEqual(clients[index].torrents.info.call_count, 2)
+                clients[index].auth_log_out.assert_called_once_with()
+        finally:
+            first.close()
+            second.close()
+
     def test_collect_releases_session_after_api_failure(self):
-        self.collector.client.sync_maindata.side_effect = Exception("Connection error")
+        self.client.sync_maindata.side_effect = Exception("Connection error")
 
         metrics = list(self.collector.collect())
 
         self.assertEqual(metrics[0].name, "qbittorrent_up")
         self.assertFalse(metrics[0].samples[0].value)
-        self.collector.client.auth_log_out.assert_called_once_with()
+        self.client.auth_log_out.assert_called_once_with()
 
     def test_collect_releases_session_on_unexpected_error(self):
         with patch.object(
@@ -100,19 +142,19 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Invalid torrent data"):
                 list(self.collector.collect())
 
-        self.collector.client.auth_log_out.assert_called_once_with()
+        self.client.auth_log_out.assert_called_once_with()
 
     def test_collect_releases_session_when_generator_closed(self):
         metrics = self.collector.collect()
         next(metrics)
-        self.collector.client.auth_log_out.assert_not_called()
+        self.client.auth_log_out.assert_not_called()
 
         metrics.close()
 
-        self.collector.client.auth_log_out.assert_called_once_with()
+        self.client.auth_log_out.assert_called_once_with()
 
     def test_collect_logout_failure_does_not_fail_scrape(self):
-        self.collector.client.auth_log_out.side_effect = Exception("Connection error")
+        self.client.auth_log_out.side_effect = Exception("Connection error")
 
         with self.assertLogs(level="ERROR") as logs:
             metrics = list(self.collector.collect())
@@ -127,7 +169,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
         list(self.collector.collect())
 
-        self.collector.client.auth_log_out.assert_not_called()
+        self.client.auth_log_out.assert_not_called()
 
     def test_create_client_with_api_key(self):
         self.mock_client.reset_mock()
@@ -147,7 +189,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
     def test_collect_by_torrent_metric_gauges(self):
         # Mock the return value of self.client.torrents.info()
-        self.collector.client.torrents.info.return_value = [
+        self.client.torrents.info.return_value = [
             {
                 "name": "Torrent 1",
                 "size": 100,
@@ -168,13 +210,13 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             },
         ]
         # Mock the client.torrent_categories.categories attribute
-        self.collector.client.torrent_categories.categories = {
+        self.client.torrent_categories.categories = {
             "category1": {"name": "Category 1"},
             "category2": {"name": "Category 2"},
             "category3": {"name": "Category 3"},
         }
 
-        result = self.collector._get_qbittorrent_by_torrent_metric_gauges()
+        result = self.collector._get_qbittorrent_by_torrent_metric_gauges(self.client)
 
         torrent_size_metric = result[0]
         self.assertIsInstance(torrent_size_metric, GaugeMetricFamily)
@@ -209,7 +251,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(torrent_downloaded_metric.samples[0].value, 100)
 
     def test_collect_torrent_tags_metric_gauge(self):
-        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge()
+        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge(self.client)
 
         self.assertIsInstance(result, GaugeMetricFamily)
         self.assertEqual(result.name, "qbittorrent_torrents_count")
@@ -230,13 +272,13 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
     def test_fetch_categories(self):
         # Mock the client.torrent_categories.categories attribute
-        self.collector.client.torrent_categories.categories = {
+        self.client.torrent_categories.categories = {
             "category1": {"name": "Category 1"},
             "category2": {"name": "Category 2"},
             "category3": {"name": "Category 3"},
         }
 
-        categories = self.collector._fetch_categories()
+        categories = self.collector._fetch_categories(self.client)
         self.assertIsInstance(categories, dict)
         self.assertNotEqual(len(categories), 0)
         self.assertEqual(categories["category1"]["name"], "Category 1")
@@ -244,15 +286,15 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(categories["category3"]["name"], "Category 3")
 
     def test_fetch_categories_exception(self):
-        self.collector.client.torrent_categories.categories = Exception(
+        self.client.torrent_categories.categories = Exception(
             "Error fetching categories"
         )
-        categories = self.collector._fetch_categories()
+        categories = self.collector._fetch_categories(self.client)
         self.assertEqual(categories, {})
 
     def test_fetch_torrents_success(self):
         # Mock the return value of self.client.torrents.info()
-        self.collector.client.torrents.info.return_value = [
+        self.client.torrents.info.return_value = [
             {"name": "Torrent 1", "size": 100},
             {"name": "Torrent 2", "size": 200},
             {"name": "Torrent 3", "size": 300},
@@ -264,16 +306,16 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             {"name": "Torrent 3", "size": 300},
         ]
 
-        result = self.collector._fetch_torrents()
+        result = self.collector._fetch_torrents(self.client)
         self.assertEqual(result, expected_result)
 
     def test_fetch_torrents_exception(self):
         # Mock an exception being raised by self.client.torrents.info()
-        self.collector.client.torrents.info.side_effect = Exception("Connection error")
+        self.client.torrents.info.side_effect = Exception("Connection error")
 
         expected_result = []
 
-        result = self.collector._fetch_torrents()
+        result = self.collector._fetch_torrents(self.client)
         self.assertEqual(result, expected_result)
 
     def test_filter_torrents_by_state(self):
@@ -327,10 +369,10 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_get_qbittorrent_status_metrics(self):
-        self.collector.client.sync_maindata.return_value = {
+        self.client.sync_maindata.return_value = {
             "server_state": {"connection_status": "connected"}
         }
-        self.collector.client.app.version = "1.2.3"
+        self.client.app.version = "1.2.3"
 
         expected_metrics = [
             Metric(
@@ -402,7 +444,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             ),
         ]
 
-        metrics = self.collector._get_qbittorrent_status_metrics()
+        metrics = self.collector._get_qbittorrent_status_metrics(self.client)
         self.assertEqual(metrics, expected_metrics)
 
     def test_server_string_with_different_settings(self):
