@@ -76,24 +76,34 @@ class QbittorrentMetricsCollector:
         Yields Prometheus gauges and counters from metrics collected from qbittorrent.
         """
         self._create_client()
-        for metric in self._get_qbittorrent_status_metrics():
-            if metric.metric_type == MetricType.COUNTER:
-                prom_metric = CounterMetricFamily(
-                    metric.name, metric.help_text, labels=list(metric.labels.keys())
+        client = self.client
+        try:
+            for metric in self._get_qbittorrent_status_metrics():
+                if metric.metric_type == MetricType.COUNTER:
+                    prom_metric = CounterMetricFamily(
+                        metric.name, metric.help_text, labels=list(metric.labels.keys())
+                    )
+                else:
+                    prom_metric = GaugeMetricFamily(
+                        metric.name, metric.help_text, labels=list(metric.labels.keys())
+                    )
+                prom_metric.add_metric(
+                    value=metric.value, labels=list(metric.labels.values())
                 )
-            else:
-                prom_metric = GaugeMetricFamily(
-                    metric.name, metric.help_text, labels=list(metric.labels.keys())
-                )
-            prom_metric.add_metric(
-                value=metric.value, labels=list(metric.labels.values())
-            )
-            yield prom_metric
+                yield prom_metric
 
-        for gauge in self._get_qbittorrent_by_torrent_metric_gauges():
-            yield gauge
+            for gauge in self._get_qbittorrent_by_torrent_metric_gauges():
+                yield gauge
 
-        yield self._get_qbittorrent_torrent_tags_metrics_gauge()
+            yield self._get_qbittorrent_torrent_tags_metrics_gauge()
+        finally:
+            # Release the WebUI session before discarding this scrape's client.
+            # Bearer-token authentication does not create a WebUI session.
+            if not self.config.get("api_key"):
+                try:
+                    client.auth_log_out()
+                except Exception as e:
+                    logger.error(f"Couldn't log out of qBittorrent: {e}")
 
     def _get_qbittorrent_by_torrent_metric_gauges(self) -> list[GaugeMetricFamily]:
         if not self.config.get("export_metrics_by_torrent", False):

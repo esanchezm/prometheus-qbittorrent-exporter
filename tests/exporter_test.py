@@ -74,6 +74,61 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         list(self.collector.collect())
         self.assertEqual(self.mock_client.call_count, 2)
 
+    def test_collect_releases_each_session(self):
+        clients = [MagicMock(), MagicMock()]
+        self.mock_client.side_effect = clients
+
+        for client in clients:
+            list(self.collector.collect())
+            client.auth_log_out.assert_called_once_with()
+
+    def test_collect_releases_session_after_api_failure(self):
+        self.collector.client.sync_maindata.side_effect = Exception("Connection error")
+
+        metrics = list(self.collector.collect())
+
+        self.assertEqual(metrics[0].name, "qbittorrent_up")
+        self.assertFalse(metrics[0].samples[0].value)
+        self.collector.client.auth_log_out.assert_called_once_with()
+
+    def test_collect_releases_session_on_unexpected_error(self):
+        with patch.object(
+            self.collector,
+            "_get_qbittorrent_by_torrent_metric_gauges",
+            side_effect=ValueError("Invalid torrent data"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Invalid torrent data"):
+                list(self.collector.collect())
+
+        self.collector.client.auth_log_out.assert_called_once_with()
+
+    def test_collect_releases_session_when_generator_closed(self):
+        metrics = self.collector.collect()
+        next(metrics)
+        self.collector.client.auth_log_out.assert_not_called()
+
+        metrics.close()
+
+        self.collector.client.auth_log_out.assert_called_once_with()
+
+    def test_collect_logout_failure_does_not_fail_scrape(self):
+        self.collector.client.auth_log_out.side_effect = Exception("Connection error")
+
+        with self.assertLogs(level="ERROR") as logs:
+            metrics = list(self.collector.collect())
+
+        self.assertTrue(metrics)
+        self.assertIn(
+            "Couldn't log out of qBittorrent: Connection error", logs.output[0]
+        )
+
+    def test_collect_with_api_key_does_not_log_out(self):
+        self.config["api_key"] = "qbt_abcdefghijklmnopqrstuvwxyz12"
+
+        list(self.collector.collect())
+
+        self.collector.client.auth_log_out.assert_not_called()
+
     def test_create_client_with_api_key(self):
         self.mock_client.reset_mock()
         self.collector.config["api_key"] = "qbt_abcdefghijklmnopqrstuvwxyz12"
