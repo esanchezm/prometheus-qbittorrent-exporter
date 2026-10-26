@@ -100,7 +100,7 @@ class QbittorrentMetricsCollector:
             # Bearer-token authentication does not create a WebUI session.
             if not self.config.get("api_key"):
                 try:
-                    client.auth_log_out()
+                    client.auth_log_out(requests_args={"timeout": 5})
                 except Exception as e:
                     logger.error(f"Couldn't log out of qBittorrent: {e}")
 
