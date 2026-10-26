@@ -1,0 +1,81 @@
+name: Image cleanup
+
+on:
+  schedule:
+    # Every Sunday at 03:00 UTC.
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only log what would be deleted'
+        type: boolean
+        default: true
+
+permissions: {}
+
+jobs:
+  ghcr:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old commit images and untagged versions
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        with:
+          package: prometheus-qbittorrent-exporter
+          # Per-commit tags pile up on every push; branch and release tags are kept.
+          delete-tags: sha-*
+          exclude-tags: latest,v*
+          delete-untagged: true
+          older-than: 14 days
+          # Manual runs default to a dry run; scheduled runs delete for real.
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+
+  dockerhub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old commit tags on Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          # Personal access token with Read, Write and Delete scope.
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_DELETE_TOKEN }}
+          NAMESPACE: ${{ github.repository_owner }}
+          REPOSITORY: prometheus-qbittorrent-exporter
+          MAX_AGE_DAYS: '14'
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          hub=https://hub.docker.com/v2
+
+          jwt=$(curl -fsS -X POST "$hub/auth/token" -H 'Content-Type: application/json' \
+            -d "$(jq -n --arg id "$DOCKERHUB_USERNAME" --arg s "$DOCKERHUB_TOKEN" '{identifier: $id, secret: $s}')" \
+            | jq -r .access_token)
+          echo "::add-mask::$jwt"
+
+          cutoff=$(date -u -d "$MAX_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)
+          url="$hub/namespaces/$NAMESPACE/repositories/$REPOSITORY/tags?page_size=100"
+          old_tags=()
+          while [ -n "$url" ] && [ "$url" != null ]; do
+            page=$(curl -fsS -H "Authorization: Bearer $jwt" "$url")
+            mapfile -t -O "${#old_tags[@]}" old_tags < <(jq -r --arg cutoff "$cutoff" '.results[]
+              | select(.name | startswith("sha-"))
+              | select((.tag_last_pushed // .last_updated) < $cutoff)
+              | .name' <<<"$page")
+            url=$(jq -r .next <<<"$page")
+          done
+
+          echo "Found ${#old_tags[@]} sha-* tags pushed before $cutoff"
+          for tag in "${old_tags[@]}"; do
+            if [ "$DRY_RUN" = true ]; then
+              echo "Would delete $tag"
+              continue
+            fi
+            # Not in the current Hub API spec, but this is the route Docker Hub still serves for tag deletion.
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
+              -H "Authorization: Bearer $jwt" "$hub/repositories/$NAMESPACE/$REPOSITORY/tags/$tag/")
+            if [ "$code" != 204 ] && [ "$code" != 404 ]; then
+              echo "::error::Deleting $tag returned HTTP $code"
+              exit 1
+            fi
+            echo "Deleted $tag"
+          done
