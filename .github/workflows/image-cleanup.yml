@@ -13,6 +13,11 @@ on:
 
 permissions: {}
 
+# Run one cleanup at a time; a new run waits instead of cancelling the active one.
+concurrency:
+  group: image-cleanup
+  cancel-in-progress: false
+
 jobs:
   ghcr:
     runs-on: ubuntu-latest
@@ -59,7 +64,8 @@ jobs:
             page=$(curl -fsS -H "Authorization: Bearer $jwt" "$url")
             mapfile -t -O "${#old_tags[@]}" old_tags < <(jq -r --arg cutoff "$cutoff" '.results[]
               | select(.name | startswith("sha-"))
-              | select((.tag_last_pushed // .last_updated) < $cutoff)
+              # Skip tags with no timestamp: jq sorts null before any string.
+              | select((.tag_last_pushed // .last_updated) as $t | $t != null and $t < $cutoff)
               | .name' <<<"$page")
             url=$(jq -r .next <<<"$page")
           done
