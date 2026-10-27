@@ -65,29 +65,48 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
-            REQUESTS_ARGS={"timeout": 5},
         )
 
-    def test_logout_preflight_and_logout_have_timeouts(self):
+    def test_cleanup_timeout_does_not_shorten_metric_requests(self):
         self.mock_client.side_effect = Client
-        client = self.collector._create_client()
-        response = Response()
-        response.status_code = 200
-        response.url = "http://localhost:8080/qbt/"
-        response._content = b"5.2.2"
 
-        with patch(
-            "requests.sessions.Session.request", return_value=response
-        ) as request:
-            client.auth_log_out(requests_args={"timeout": 5})
+        def respond(method, url, **kwargs):
+            response = Response()
+            response.status_code = 200
+            response.url = url
+            if url.endswith("/app/version"):
+                response._content = b"5.2.2"
+            elif url.endswith("/sync/maindata"):
+                response._content = (
+                    b'{"server_state":{"connection_status":"connected"}}'
+                )
+            elif url.endswith("/torrents/info"):
+                response._content = b"[]"
+            else:
+                response._content = b"{}"
+            return response
 
-        post_requests = [c for c in request.call_args_list if c.args[0] == "post"]
+        with patch("requests.sessions.Session.request", side_effect=respond) as request:
+            metrics = list(self.collector.collect())
+
+        self.assertTrue(metrics[0].samples[0].value)
+        cleanup_requests = request.call_args_list[-2:]
         self.assertEqual(
-            [c.args[1].rsplit("/", 2)[-2:] for c in post_requests],
+            [c.args[1].rsplit("/", 2)[-2:] for c in cleanup_requests],
             [["app", "version"], ["auth", "logout"]],
         )
-        for call in request.call_args_list:
+        for call in cleanup_requests:
             self.assertEqual(call.kwargs["timeout"], 5)
+
+        metric_requests = request.call_args_list[:-2]
+        self.assertTrue(
+            any(c.args[1].endswith("/sync/maindata") for c in metric_requests)
+        )
+        self.assertTrue(
+            any(c.args[1].endswith("/torrents/info") for c in metric_requests)
+        )
+        for call in metric_requests:
+            self.assertEqual(call.kwargs["timeout"], 15.1)
 
     def test_collect_recreates_client(self):
         """Each call to collect() must create a fresh Client so that
