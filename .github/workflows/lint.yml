@@ -6,6 +6,11 @@ on:
     branches:
       - "master"
 
+# Coverage publishing updates a shared branch; do not overlap runs for one ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
@@ -14,49 +19,53 @@ jobs:
         contents: write
         checks: write
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@94a823180e06fcde4ad29308721954a521c96ed0 # v4
+        uses: pdm-project/setup-pdm@544d7237314ee09c256785bd360f6b30add38b37 # v4
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pdm install
       - name: Lint with black
-        uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e # stable
+        uses: psf/black@258e7dbf348bc23cb70b8cdf693481c04634ebcc # stable
         with:
           options: "--check --verbose"
       - name: Test with pytest
         run: |
-          pdm run pytest --junit-xml=test-results.xml
+          pdm run coverage run -m pytest --junit-xml=test-results.xml
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
+        uses: EnricoMi/publish-unit-test-result-action@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2
         if: always()
         with:
           files: |
             test-results.xml
-      - name: Test with coverage
-        run: |
-          pdm run coverage run -m pytest -v -s
       - name: Generate Coverage Report
         run: |
           pdm run coverage report -m
+      # Publish once per run so matrix jobs cannot race on the coverage branch,
+      # PR comment, or fallback artifact name.
       - name: Coverage comment
+        if: matrix.python-version == '3.11'
         id: coverage_comment
-        uses: py-cov-action/python-coverage-comment-action@53ff7553078bad69030786e486677315346c2dd2 # v3
+        uses: py-cov-action/python-coverage-comment-action@e5fb2218463c3377f3504b0c5b5646ed53da7a2f # v4.5
         with:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action

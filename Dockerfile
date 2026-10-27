@@ -1,4 +1,4 @@
-ARG PYTHON_BASE=3.14-alpine@sha256:601e99e090cb08c2784a42395487709500bc39930307fe72f3f11a8f3c430762
+ARG PYTHON_BASE=3.15-alpine@sha256:0aa144e9ec2ae8fd80dfd94070ef3e432a0df17b6e5e0091dc05323974ce9913
 FROM python:$PYTHON_BASE AS builder
 
 RUN apk add --no-cache gcc musl-dev && pip install -U pdm
