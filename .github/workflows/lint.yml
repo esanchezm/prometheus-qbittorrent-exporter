@@ -6,6 +6,11 @@ on:
     branches:
       - "master"
 
+# Coverage publishing updates a shared branch; do not overlap runs for one ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
@@ -14,6 +19,7 @@ jobs:
         contents: write
         checks: write
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.11"
@@ -30,6 +36,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Setup PDM
         uses: pdm-project/setup-pdm@544d7237314ee09c256785bd360f6b30add38b37 # v4
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pdm install
       - name: Lint with black
@@ -38,20 +46,20 @@ jobs:
           options: "--check --verbose"
       - name: Test with pytest
         run: |
-          pdm run pytest --junit-xml=test-results.xml
+          pdm run coverage run -m pytest --junit-xml=test-results.xml
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2
         if: always()
         with:
           files: |
             test-results.xml
-      - name: Test with coverage
-        run: |
-          pdm run coverage run -m pytest -v -s
       - name: Generate Coverage Report
         run: |
           pdm run coverage report -m
+      # Publish once per run so matrix jobs cannot race on the coverage branch,
+      # PR comment, or fallback artifact name.
       - name: Coverage comment
+        if: matrix.python-version == '3.11'
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@50d15ff8768f6d897b04e5a0805bd1a98f7096c4 # v3
         with:
