@@ -29,11 +29,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@94a823180e06fcde4ad29308721954a521c96ed0 # v4
+        uses: pdm-project/setup-pdm@544d7237314ee09c256785bd360f6b30add38b37 # v4
       - name: Install dependencies
         run: pdm install
       - name: Lint with black
-        uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e # stable
+        uses: psf/black@258e7dbf348bc23cb70b8cdf693481c04634ebcc # stable
         with:
           options: "--check --verbose"
       - name: Test with pytest
