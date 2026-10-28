@@ -1,7 +1,9 @@
+import os
+import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
-from prometheus_client.metrics_core import CounterMetricFamily, GaugeMetricFamily
+from prometheus_client.metrics_core import GaugeMetricFamily
 from qbittorrentapi import Client, TorrentStates
 from requests import Response
 from requests.exceptions import Timeout
@@ -10,6 +12,10 @@ from qbittorrent_exporter.exporter import (
     Metric,
     MetricType,
     QbittorrentMetricsCollector,
+    ShutdownSignalHandler,
+    _parse_bool,
+    _validate_log_level,
+    get_config,
 )
 
 
@@ -54,7 +60,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(self.collector.config, self.config)
         # Client must not be instantiated during __init__; verify with a fresh collector.
         self.mock_client.reset_mock()
-        collector = QbittorrentMetricsCollector(self.config)
+        QbittorrentMetricsCollector(self.config)
         self.mock_client.assert_not_called()
 
     def test_create_client(self):
@@ -396,8 +402,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(categories["category3"]["name"], "Category 3")
 
     def test_fetch_categories_exception(self):
-        self.client.torrent_categories.categories = Exception(
-            "Error fetching categories"
+        type(self.client.torrent_categories).categories = PropertyMock(
+            side_effect=Exception("Error fetching categories")
         )
         categories = self.collector._fetch_categories(self.client)
         self.assertEqual(categories, {})
@@ -625,3 +631,71 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(
             collector.connection_string, "https://qbittorrent4.example.com:443/server/"
         )
+
+    def test_url_base_leading_slash(self):
+        config = {**self.config, "url_base": "/qbt"}
+        collector = QbittorrentMetricsCollector(config)
+        self.assertEqual(collector.server, "localhost:8080/qbt")
+        self.assertEqual(collector.connection_string, "http://localhost:8080/qbt")
+
+
+class TestConfig(unittest.TestCase):
+    def test_parse_bool(self):
+        for value in ("True", "true", "1", "yes", " True "):
+            self.assertTrue(_parse_bool(value), value)
+        for value in ("False", "", "0", "no", "anything"):
+            self.assertFalse(_parse_bool(value), value)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_config_bool_defaults(self):
+        config = get_config()
+        self.assertFalse(config["ssl"])
+        self.assertFalse(config["export_metrics_by_torrent"])
+        self.assertTrue(config["verify_webui_certificate"])
+
+    @patch.dict(os.environ, {"VERIFY_WEBUI_CERTIFICATE": "true"}, clear=True)
+    def test_get_config_verify_certificate_lowercase(self):
+        self.assertTrue(get_config()["verify_webui_certificate"])
+
+    @patch.dict(os.environ, {"EXPORTER_PORT": "abc"}, clear=True)
+    def test_get_config_invalid_exporter_port(self):
+        with self.assertRaises(SystemExit):
+            get_config()
+
+    def test_get_config_file_variant(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            secret_path = os.path.join(tmp_dir, "secret")
+            with open(secret_path, "w") as secret_file:
+                secret_file.write("  s3cret\n")
+
+            with patch.dict(
+                os.environ, {"FILE__QBITTORRENT_PASS": secret_path}, clear=True
+            ):
+                self.assertEqual(get_config()["password"], "s3cret")
+
+            missing_path = os.path.join(tmp_dir, "missing")
+            with patch.dict(
+                os.environ, {"FILE__QBITTORRENT_PASS": missing_path}, clear=True
+            ):
+                with self.assertRaises(SystemExit):
+                    get_config()
+
+    def test_validate_log_level(self):
+        self.assertEqual(_validate_log_level("INFO"), "INFO")
+        self.assertEqual(_validate_log_level(" debug "), "DEBUG")
+        with self.assertRaises(SystemExit):
+            _validate_log_level("VERBOSE")
+
+
+class TestShutdownSignalHandler(unittest.TestCase):
+    @patch("qbittorrent_exporter.exporter.signal.signal")
+    def test_second_signal_force_kills(self, mock_signal):
+        handler = ShutdownSignalHandler()
+        self.assertEqual(mock_signal.call_count, 2)
+        self.assertFalse(handler.is_shutting_down())
+
+        handler._on_signal_received(None, None)
+        self.assertTrue(handler.is_shutting_down())
+
+        with self.assertRaises(SystemExit):
+            handler._on_signal_received(None, None)
