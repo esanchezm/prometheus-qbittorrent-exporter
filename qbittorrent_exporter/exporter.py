@@ -4,9 +4,10 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
-from typing import Any, Iterable
+from typing import Any
 
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, CounterMetricFamily, GaugeMetricFamily
@@ -35,7 +36,7 @@ class Metric:
 
     name: str
     value: Any
-    labels: dict[str, str] = field(default_factory=lambda: {})
+    labels: dict[str, str] = field(default_factory=dict)
     help_text: str = ""
     metric_type: MetricType = MetricType.GAUGE
 
@@ -47,7 +48,7 @@ class QbittorrentMetricsCollector:
         self.protocol = "http"
 
         if config["url_base"]:
-            self.server = f"{self.server}/{config['url_base']}"
+            self.server = f"{self.server}/{config['url_base'].lstrip('/')}"
         if config["ssl"] or config["port"] == "443":
             self.protocol = "https"
         self.connection_string = f"{self.protocol}://{self.server}"
@@ -91,8 +92,7 @@ class QbittorrentMetricsCollector:
                 )
                 yield prom_metric
 
-            for gauge in self._get_qbittorrent_by_torrent_metric_gauges(client):
-                yield gauge
+            yield from self._get_qbittorrent_by_torrent_metric_gauges(client)
 
             yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
         finally:
@@ -266,7 +266,6 @@ class QbittorrentMetricsCollector:
         categories = self._fetch_categories(client)
         torrents = self._fetch_torrents(client)
 
-        metrics: list[Metric] = []
         categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}
 
         torrents_count_gauge = GaugeMetricFamily(
@@ -301,8 +300,8 @@ class ShutdownSignalHandler:
         return self.shutdown_count > 0
 
     def _on_signal_received(self, signal, frame):
-        if self.shutdown_count > 1:
-            logger.warn("Forcibly killing exporter")
+        if self.shutdown_count >= 1:
+            logger.warning("Forcibly killing exporter")
             sys.exit(1)
         logger.info("Exporter is shutting down")
         self.shutdown_count += 1
@@ -314,31 +313,53 @@ def _get_config_value(key: str, default: str = "") -> str:
         try:
             with open(input_path, "r") as input_file:
                 return input_file.read().strip()
-        except IOError as e:
-            logger.error(f"Unable to read value for {key} from {input_path}: {str(e)}")
+        except OSError as e:
+            logger.error(f"Unable to read value for {key} from {input_path}: {e!s}")
+            sys.exit(1)
 
     return os.environ.get(key, default)
 
 
+def _parse_bool(value: str) -> bool:
+    return value.strip().lower() in ("true", "1", "yes")
+
+
+def _validate_log_level(level: str) -> str:
+    level = level.strip().upper()
+    if level not in logging.getLevelNamesMapping():
+        logger.error(f"Invalid EXPORTER_LOG_LEVEL: {level}")
+        sys.exit(1)
+    return level
+
+
 def get_config() -> dict:
     """Loads all config values."""
+    try:
+        exporter_port = int(_get_config_value("EXPORTER_PORT", "8000"))
+    except ValueError:
+        logger.error("Invalid EXPORTER_PORT, must be an integer")
+        sys.exit(1)
+    if not 1 <= exporter_port <= 65535:
+        logger.error("Invalid EXPORTER_PORT, must be between 1 and 65535")
+        sys.exit(1)
+
     return {
         "host": _get_config_value("QBITTORRENT_HOST", ""),
         "port": _get_config_value("QBITTORRENT_PORT", ""),
-        "ssl": (_get_config_value("QBITTORRENT_SSL", "False") == "True"),
+        "ssl": _parse_bool(_get_config_value("QBITTORRENT_SSL", "False")),
         "url_base": _get_config_value("QBITTORRENT_URL_BASE", ""),
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
         "api_key": _get_config_value("QBITTORRENT_API_KEY", ""),
         "exporter_address": _get_config_value("EXPORTER_ADDRESS", "0.0.0.0"),
-        "exporter_port": int(_get_config_value("EXPORTER_PORT", "8000")),
+        "exporter_port": exporter_port,
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
         "metrics_prefix": _get_config_value("METRICS_PREFIX", "qbittorrent"),
-        "export_metrics_by_torrent": (
-            _get_config_value("EXPORT_METRICS_BY_TORRENT", "False") == "True"
+        "export_metrics_by_torrent": _parse_bool(
+            _get_config_value("EXPORT_METRICS_BY_TORRENT", "False")
         ),
-        "verify_webui_certificate": (
-            _get_config_value("VERIFY_WEBUI_CERTIFICATE", "True") == "True"
+        "verify_webui_certificate": _parse_bool(
+            _get_config_value("VERIFY_WEBUI_CERTIFICATE", "True")
         ),
     }
 
@@ -356,7 +377,7 @@ def main():
     config = get_config()
 
     # set level once config has been loaded
-    logger.setLevel(config["log_level"])
+    logger.setLevel(_validate_log_level(config["log_level"]))
 
     # Register signal handler
     signal_handler = ShutdownSignalHandler()

@@ -44,3 +44,8 @@ dev = [
     "coverage>=7.5.3",
     "ruff>=0.6.2",
 ]
+
+[tool.ruff.lint]
+# A failed scrape step must log and keep the exporter running, so broad
+# `except Exception` handlers are intentional.
+ignore = ["BLE001"]

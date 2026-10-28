@@ -52,7 +52,7 @@ The application reads configuration using environment variables:
 | `EXPORTER_PORT`            | `8000`        | Exporter listening port |
 | `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 | `METRICS_PREFIX`           | `qbittorrent` | Prefix to add to all the metrics |
-| `VERIFY_WEBUI_CERTIFICATE` | `True`        | Whether to verify SSL certificate when connecting to the qbittorrent server. Any other value but `True` will disable the verification |
+| `VERIFY_WEBUI_CERTIFICATE` | `True`        | Whether to verify SSL certificate when connecting to the qbittorrent server. Case-insensitive; `true`/`1`/`yes` enable verification, anything else disables it |
 
 
 ## Metrics
@@ -67,8 +67,8 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 | `qbittorrent_firewalled`                                        | gauge    | Whether the qBittorrent server is connected to the Bittorrent network but is behind a firewall.  |
 | `qbittorrent_dht_nodes`                                         | gauge    | Number of DHT nodes connected to. |
 | `qbittorrent_total_peer_connections`                            | gauge    | Total number of peer connections. |
-| `qbittorrent_dl_info_data`                                      | counter  | Data downloaded since the server started, in bytes. |
-| `qbittorrent_up_info_data`                                      | counter  | Data uploaded since the server started, in bytes. |
+| `qbittorrent_dl_info_data_total`                                | counter  | Data downloaded since the server started, in bytes. |
+| `qbittorrent_up_info_data_total`                                | counter  | Data uploaded since the server started, in bytes. |
 | `qbittorrent_alltime_dl_total`                                  | counter  | Total historical data downloaded, in bytes. |
 | `qbittorrent_alltime_ul_total`                                  | counter  | Total historical data uploaded, in bytes. |
 | `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|

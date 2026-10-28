@@ -44,6 +44,10 @@ jobs:
         uses: psf/black@258e7dbf348bc23cb70b8cdf693481c04634ebcc # stable
         with:
           options: "--check --verbose"
+      - name: Lint with ruff
+        run: pdm run ruff check .
+      - name: Check import order with isort
+        run: pdm run isort qbittorrent_exporter tests --profile black --check-only
       - name: Test with pytest
         run: |
           pdm run coverage run -m pytest --junit-xml=test-results.xml
