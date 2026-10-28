@@ -4,9 +4,10 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
-from typing import Any, Iterable
+from typing import Any
 
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, CounterMetricFamily, GaugeMetricFamily
@@ -35,7 +36,7 @@ class Metric:
 
     name: str
     value: Any
-    labels: dict[str, str] = field(default_factory=lambda: {})
+    labels: dict[str, str] = field(default_factory=dict)
     help_text: str = ""
     metric_type: MetricType = MetricType.GAUGE
 
@@ -91,8 +92,7 @@ class QbittorrentMetricsCollector:
                 )
                 yield prom_metric
 
-            for gauge in self._get_qbittorrent_by_torrent_metric_gauges(client):
-                yield gauge
+            yield from self._get_qbittorrent_by_torrent_metric_gauges(client)
 
             yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
         finally:
@@ -313,8 +313,8 @@ def _get_config_value(key: str, default: str = "") -> str:
         try:
             with open(input_path, "r") as input_file:
                 return input_file.read().strip()
-        except IOError as e:
-            logger.error(f"Unable to read value for {key} from {input_path}: {str(e)}")
+        except OSError as e:
+            logger.error(f"Unable to read value for {key} from {input_path}: {e!s}")
             sys.exit(1)
 
     return os.environ.get(key, default)
@@ -338,6 +338,9 @@ def get_config() -> dict:
         exporter_port = int(_get_config_value("EXPORTER_PORT", "8000"))
     except ValueError:
         logger.error("Invalid EXPORTER_PORT, must be an integer")
+        sys.exit(1)
+    if not 1 <= exporter_port <= 65535:
+        logger.error("Invalid EXPORTER_PORT, must be between 1 and 65535")
         sys.exit(1)
 
     return {

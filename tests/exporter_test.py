@@ -246,13 +246,15 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         )
 
     def test_collect_releases_session_on_unexpected_error(self):
-        with patch.object(
-            self.collector,
-            "_get_qbittorrent_by_torrent_metric_gauges",
-            side_effect=ValueError("Invalid torrent data"),
+        with (
+            patch.object(
+                self.collector,
+                "_get_qbittorrent_by_torrent_metric_gauges",
+                side_effect=ValueError("Invalid torrent data"),
+            ),
+            self.assertRaisesRegex(ValueError, "Invalid torrent data"),
         ):
-            with self.assertRaisesRegex(ValueError, "Invalid torrent data"):
-                list(self.collector.collect())
+            list(self.collector.collect())
 
         self.client._post.assert_called_once_with(
             _name="auth", _method="logout", requests_args={"timeout": 5}
@@ -662,6 +664,15 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(SystemExit):
             get_config()
 
+    def test_get_config_out_of_range_exporter_port(self):
+        for port in ("0", "-1", "65536"):
+            with (
+                self.subTest(port=port),
+                patch.dict(os.environ, {"EXPORTER_PORT": port}, clear=True),
+                self.assertRaises(SystemExit),
+            ):
+                get_config()
+
     def test_get_config_file_variant(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             secret_path = os.path.join(tmp_dir, "secret")
@@ -674,11 +685,13 @@ class TestConfig(unittest.TestCase):
                 self.assertEqual(get_config()["password"], "s3cret")
 
             missing_path = os.path.join(tmp_dir, "missing")
-            with patch.dict(
-                os.environ, {"FILE__QBITTORRENT_PASS": missing_path}, clear=True
+            with (
+                patch.dict(
+                    os.environ, {"FILE__QBITTORRENT_PASS": missing_path}, clear=True
+                ),
+                self.assertRaises(SystemExit),
             ):
-                with self.assertRaises(SystemExit):
-                    get_config()
+                get_config()
 
     def test_validate_log_level(self):
         self.assertEqual(_validate_log_level("INFO"), "INFO")
