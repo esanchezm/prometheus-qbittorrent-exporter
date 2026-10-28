@@ -34,6 +34,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "verify_webui_certificate": False,
             "metrics_prefix": "qbittorrent",
             "export_metrics_by_torrent": True,
+            "timeout": 15.1,
         }
         self.torrentsState = [
             {"name": "Torrent DOWNLOADING 1", "state": TorrentStates.DOWNLOADING},
@@ -71,6 +72,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
+            FORCE_SCHEME_FROM_HOST=True,
+            REQUESTS_ARGS={"timeout": 15.1},
         )
 
     @staticmethod
@@ -178,6 +181,11 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         list(self.collector.collect())
         self.assertEqual(self.mock_client.call_count, 2)
 
+    def test_collect_fetches_torrents_once(self):
+        self.client.torrents.info.return_value = []
+        list(self.collector.collect())
+        self.assertEqual(self.client.torrents.info.call_count, 1)
+
     def test_collect_releases_each_session(self):
         clients = [MagicMock(), MagicMock()]
         self.mock_client.side_effect = clients
@@ -226,7 +234,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 self.assertEqual(size.samples[0].labels["name"], f"Torrent {index}")
                 self.assertEqual(size.samples[0].value, index + 1)
                 clients[index].sync_maindata.assert_called_once_with()
-                self.assertEqual(clients[index].torrents.info.call_count, 2)
+                self.assertEqual(clients[index].torrents.info.call_count, 1)
                 clients[index]._post.assert_called_once_with(
                     _name="auth", _method="logout", requests_args={"timeout": 5}
                 )
@@ -334,7 +342,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "category3": {"name": "Category 3"},
         }
 
-        result = self.collector._get_qbittorrent_by_torrent_metric_gauges(self.client)
+        result = self.collector._get_qbittorrent_by_torrent_metric_gauges(
+            self.collector._fetch_torrents(self.client)
+        )
 
         torrent_size_metric = result[0]
         self.assertIsInstance(torrent_size_metric, GaugeMetricFamily)
@@ -369,7 +379,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(torrent_downloaded_metric.samples[0].value, 100)
 
     def test_collect_torrent_tags_metric_gauge(self):
-        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge(self.client)
+        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge(
+            self.client, []
+        )
 
         self.assertIsInstance(result, GaugeMetricFamily)
         self.assertEqual(result.name, "qbittorrent_torrents_count")
@@ -578,6 +590,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "password": "pass",
             "verify_webui_certificate": False,
             "metrics_prefix": "qbittorrent",
+            "timeout": 15.1,
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent.example.com:8081/qbittorrent/")
@@ -595,6 +608,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "password": "pass",
             "verify_webui_certificate": True,
             "metrics_prefix": "qbittorrent",
+            "timeout": 15.1,
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent2.example.com:8084")
@@ -611,6 +625,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "password": "pass",
             "verify_webui_certificate": True,
             "metrics_prefix": "qbittorrent",
+            "timeout": 15.1,
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent3.example.com:443/server/")
@@ -627,6 +642,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "password": "pass",
             "verify_webui_certificate": True,
             "metrics_prefix": "qbittorrent",
+            "timeout": 15.1,
         }
         collector = QbittorrentMetricsCollector(config)
         self.assertEqual(collector.server, "qbittorrent4.example.com:443/server/")
@@ -658,6 +674,23 @@ class TestConfig(unittest.TestCase):
     @patch.dict(os.environ, {"VERIFY_WEBUI_CERTIFICATE": "true"}, clear=True)
     def test_get_config_verify_certificate_lowercase(self):
         self.assertTrue(get_config()["verify_webui_certificate"])
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_config_timeout_default(self):
+        self.assertEqual(get_config()["timeout"], 15.1)
+
+    @patch.dict(os.environ, {"QBITTORRENT_TIMEOUT": "30"}, clear=True)
+    def test_get_config_timeout(self):
+        self.assertEqual(get_config()["timeout"], 30.0)
+
+    def test_get_config_invalid_timeout(self):
+        for timeout in ("abc", "0", "-5", "nan"):
+            with (
+                self.subTest(timeout=timeout),
+                patch.dict(os.environ, {"QBITTORRENT_TIMEOUT": timeout}, clear=True),
+                self.assertRaises(SystemExit),
+            ):
+                get_config()
 
     @patch.dict(os.environ, {"EXPORTER_PORT": "abc"}, clear=True)
     def test_get_config_invalid_exporter_port(self):

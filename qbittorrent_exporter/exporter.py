@@ -11,7 +11,7 @@ from typing import Any
 
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, CounterMetricFamily, GaugeMetricFamily
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 from qbittorrentapi import Client, TorrentStates
 
 # Enable dumps on stderr in case of segfault
@@ -57,6 +57,9 @@ class QbittorrentMetricsCollector:
         client_args: dict[str, Any] = {
             "host": self.connection_string,
             "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"],
+            # The host always has an explicit scheme, so skip scheme detection.
+            "FORCE_SCHEME_FROM_HOST": True,
+            "REQUESTS_ARGS": {"timeout": self.config["timeout"]},
         }
 
         # qBittorrent 5.2+ supports API key auth via bearer tokens
@@ -78,6 +81,8 @@ class QbittorrentMetricsCollector:
         """
         client = self._create_client()
         try:
+            torrents = self._fetch_torrents(client)
+
             for metric in self._get_qbittorrent_status_metrics(client):
                 if metric.metric_type == MetricType.COUNTER:
                     prom_metric = CounterMetricFamily(
@@ -92,9 +97,9 @@ class QbittorrentMetricsCollector:
                 )
                 yield prom_metric
 
-            yield from self._get_qbittorrent_by_torrent_metric_gauges(client)
+            yield from self._get_qbittorrent_by_torrent_metric_gauges(torrents)
 
-            yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
+            yield self._get_qbittorrent_torrent_tags_metrics_gauge(client, torrents)
         finally:
             # Release the WebUI session before discarding this scrape's client.
             # Bearer-token authentication does not create a WebUI session.
@@ -109,7 +114,7 @@ class QbittorrentMetricsCollector:
                     logger.error(f"Couldn't log out of qBittorrent: {e}")
 
     def _get_qbittorrent_by_torrent_metric_gauges(
-        self, client: Client
+        self, torrents: list[dict]
     ) -> list[GaugeMetricFamily]:
         if not self.config.get("export_metrics_by_torrent", False):
             return []
@@ -126,7 +131,7 @@ class QbittorrentMetricsCollector:
             labels=["name", "category", "server"],
         )
 
-        for torrent in self._fetch_torrents(client):
+        for torrent in torrents:
             torrent_size_gauge.add_metric(
                 value=torrent["size"],
                 labels=[torrent["name"], torrent["category"], self.server],
@@ -261,10 +266,9 @@ class QbittorrentMetricsCollector:
         return [torrent for torrent in torrents if torrent["state"] == state.value]
 
     def _get_qbittorrent_torrent_tags_metrics_gauge(
-        self, client: Client
+        self, client: Client, torrents: list[dict]
     ) -> GaugeMetricFamily:
         categories = self._fetch_categories(client)
-        torrents = self._fetch_torrents(client)
 
         categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}
 
@@ -343,6 +347,15 @@ def get_config() -> dict:
         logger.error("Invalid EXPORTER_PORT, must be between 1 and 65535")
         sys.exit(1)
 
+    try:
+        timeout = float(_get_config_value("QBITTORRENT_TIMEOUT", "15.1"))
+    except ValueError:
+        logger.error("Invalid QBITTORRENT_TIMEOUT, must be a number")
+        sys.exit(1)
+    if not timeout > 0:
+        logger.error("Invalid QBITTORRENT_TIMEOUT, must be greater than 0")
+        sys.exit(1)
+
     return {
         "host": _get_config_value("QBITTORRENT_HOST", ""),
         "port": _get_config_value("QBITTORRENT_PORT", ""),
@@ -351,6 +364,7 @@ def get_config() -> dict:
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
         "api_key": _get_config_value("QBITTORRENT_API_KEY", ""),
+        "timeout": timeout,
         "exporter_address": _get_config_value("EXPORTER_ADDRESS", "0.0.0.0"),
         "exporter_port": exporter_port,
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),
@@ -367,7 +381,7 @@ def get_config() -> dict:
 def main():
     # Init logger so it can be used
     logHandler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter(
+    formatter = JsonFormatter(
         "%(asctime) %(levelname) %(message)", datefmt="%Y-%m-%d %H:%M:%S"
     )
     logHandler.setFormatter(formatter)

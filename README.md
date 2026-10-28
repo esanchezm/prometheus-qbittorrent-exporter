@@ -48,6 +48,7 @@ The application reads configuration using environment variables:
 | `QBITTORRENT_USER`         | `""`          | qbittorrent username |
 | `QBITTORRENT_PASS`         | `""`          | qbittorrent password |
 | `QBITTORRENT_API_KEY`      | `""`          | qBittorrent API key for qBittorrent >= 5.2. When set, it overrides `QBITTORRENT_USER`/`QBITTORRENT_PASS`. |
+| `QBITTORRENT_TIMEOUT`      | `15.1`        | Timeout in seconds for each HTTP request to qBittorrent. Retries mean a single API call can take up to ~4x this value. |
 | `EXPORTER_ADDRESS`         | `0.0.0.0`     | Exporter listening IP address |
 | `EXPORTER_PORT`            | `8000`        | Exporter listening port |
 | `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
