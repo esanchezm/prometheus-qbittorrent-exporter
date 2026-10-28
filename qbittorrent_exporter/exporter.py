@@ -100,10 +100,11 @@ class QbittorrentMetricsCollector:
             # Bearer-token authentication does not create a WebUI session.
             if not self.config.get("api_key"):
                 try:
-                    # The logout preflight ignores per-call requests_args. Only
-                    # shorten this scrape's client timeout after fetching metrics.
-                    client._REQUESTS_ARGS["timeout"] = 5
-                    client.auth_log_out(requests_args={"timeout": 5})
+                    # Bypass auth_log_out's preflight: a failed session check
+                    # must not prevent sending logout for this scrape's session.
+                    client._post(
+                        _name="auth", _method="logout", requests_args={"timeout": 5}
+                    )
                 except Exception as e:
                     logger.error(f"Couldn't log out of qBittorrent: {e}")
 

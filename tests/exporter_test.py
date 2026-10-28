@@ -67,38 +67,41 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
         )
 
+    @staticmethod
+    def _api_response(method, url, **kwargs):
+        response = Response()
+        response.status_code = 200
+        response.url = url
+        if url.endswith("/app/version"):
+            response._content = b"5.2.2"
+        elif url.endswith("/app/webapiVersion"):
+            response._content = b"2.15.0"
+        elif url.endswith("/sync/maindata"):
+            response._content = b'{"server_state":{"connection_status":"connected"}}'
+        elif url.endswith("/torrents/info"):
+            response._content = b"[]"
+        else:
+            response._content = b"{}"
+        return response
+
     def test_cleanup_timeout_does_not_shorten_metric_requests(self):
         self.mock_client.side_effect = Client
 
-        def respond(method, url, **kwargs):
-            response = Response()
-            response.status_code = 200
-            response.url = url
-            if url.endswith("/app/version"):
-                response._content = b"5.2.2"
-            elif url.endswith("/sync/maindata"):
-                response._content = (
-                    b'{"server_state":{"connection_status":"connected"}}'
-                )
-            elif url.endswith("/torrents/info"):
-                response._content = b"[]"
-            else:
-                response._content = b"{}"
-            return response
-
-        with patch("requests.sessions.Session.request", side_effect=respond) as request:
+        with patch(
+            "requests.sessions.Session.request", side_effect=self._api_response
+        ) as request:
             metrics = list(self.collector.collect())
 
         self.assertTrue(metrics[0].samples[0].value)
-        cleanup_requests = request.call_args_list[-2:]
+        cleanup_requests = request.call_args_list[-1:]
         self.assertEqual(
             [c.args[1].rsplit("/", 2)[-2:] for c in cleanup_requests],
-            [["app", "version"], ["auth", "logout"]],
+            [["auth", "logout"]],
         )
         for call in cleanup_requests:
             self.assertEqual(call.kwargs["timeout"], 5)
 
-        metric_requests = request.call_args_list[:-2]
+        metric_requests = request.call_args_list[:-1]
         self.assertTrue(
             any(c.args[1].endswith("/sync/maindata") for c in metric_requests)
         )
@@ -107,6 +110,58 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         )
         for call in metric_requests:
             self.assertEqual(call.kwargs["timeout"], 15.1)
+
+    def test_logout_is_sent_after_exhausted_preflight_timeouts(self):
+        self.mock_client.side_effect = Client
+        client = self.collector._create_client()
+        self.mock_client.side_effect = None
+        self.mock_client.return_value = client
+
+        def fail_preflight(method, url, **kwargs):
+            if url.endswith("/app/version"):
+                raise Timeout("Session check timed out")
+            return self._api_response(method, url, **kwargs)
+
+        with patch(
+            "requests.sessions.Session.request", side_effect=self._api_response
+        ) as request:
+            scrape = self.collector.collect()
+            try:
+                # Fetch every metric, leaving the generator suspended before cleanup.
+                metrics = []
+                for metric in scrape:
+                    metrics.append(metric)
+                    if metric.name == "qbittorrent_torrents_count":
+                        break
+                self.assertTrue(metrics[0].samples[0].value)
+                self.assertTrue(
+                    any(
+                        c.args[1].endswith("/torrents/info")
+                        for c in request.call_args_list
+                    )
+                )
+
+                request.reset_mock()
+                request.side_effect = fail_preflight
+                self.assertFalse(client.is_logged_in)
+                preflight_requests = [
+                    c
+                    for c in request.call_args_list
+                    if c.args[1].endswith("/app/version")
+                ]
+                self.assertEqual(len(preflight_requests), 2)
+            finally:
+                scrape.close()
+
+        self.assertEqual(
+            [
+                c.args[1].rsplit("/", 2)[-2:]
+                for c in request.call_args_list
+                if c.args[0] == "post"
+            ],
+            [["app", "version"], ["app", "version"], ["auth", "logout"]],
+        )
+        self.assertEqual(request.call_args.kwargs["timeout"], 5)
 
     def test_collect_recreates_client(self):
         """Each call to collect() must create a fresh Client so that
@@ -123,7 +178,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
         for client in clients:
             list(self.collector.collect())
-            client.auth_log_out.assert_called_once_with(requests_args={"timeout": 5})
+            client._post.assert_called_once_with(
+                _name="auth", _method="logout", requests_args={"timeout": 5}
+            )
 
     def test_overlapping_scrapes_use_separate_clients(self):
         clients = [MagicMock(), MagicMock()]
@@ -152,10 +209,10 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
             # Finish the first scrape while the second still owns an active session.
             first_metrics = list(first)
-            clients[0].auth_log_out.assert_called_once_with(
-                requests_args={"timeout": 5}
+            clients[0]._post.assert_called_once_with(
+                _name="auth", _method="logout", requests_args={"timeout": 5}
             )
-            clients[1].auth_log_out.assert_not_called()
+            clients[1]._post.assert_not_called()
             second_metrics = list(second)
 
             for index, metrics in enumerate((first_metrics, second_metrics)):
@@ -164,8 +221,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 self.assertEqual(size.samples[0].value, index + 1)
                 clients[index].sync_maindata.assert_called_once_with()
                 self.assertEqual(clients[index].torrents.info.call_count, 2)
-                clients[index].auth_log_out.assert_called_once_with(
-                    requests_args={"timeout": 5}
+                clients[index]._post.assert_called_once_with(
+                    _name="auth", _method="logout", requests_args={"timeout": 5}
                 )
         finally:
             first.close()
@@ -178,7 +235,9 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
         self.assertEqual(metrics[0].name, "qbittorrent_up")
         self.assertFalse(metrics[0].samples[0].value)
-        self.client.auth_log_out.assert_called_once_with(requests_args={"timeout": 5})
+        self.client._post.assert_called_once_with(
+            _name="auth", _method="logout", requests_args={"timeout": 5}
+        )
 
     def test_collect_releases_session_on_unexpected_error(self):
         with patch.object(
@@ -189,19 +248,23 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Invalid torrent data"):
                 list(self.collector.collect())
 
-        self.client.auth_log_out.assert_called_once_with(requests_args={"timeout": 5})
+        self.client._post.assert_called_once_with(
+            _name="auth", _method="logout", requests_args={"timeout": 5}
+        )
 
     def test_collect_releases_session_when_generator_closed(self):
         metrics = self.collector.collect()
         next(metrics)
-        self.client.auth_log_out.assert_not_called()
+        self.client._post.assert_not_called()
 
         metrics.close()
 
-        self.client.auth_log_out.assert_called_once_with(requests_args={"timeout": 5})
+        self.client._post.assert_called_once_with(
+            _name="auth", _method="logout", requests_args={"timeout": 5}
+        )
 
     def test_collect_logout_timeout_does_not_fail_scrape(self):
-        self.client.auth_log_out.side_effect = Timeout("Logout timed out")
+        self.client._post.side_effect = Timeout("Logout timed out")
 
         with self.assertLogs(level="ERROR") as logs:
             metrics = list(self.collector.collect())
@@ -216,7 +279,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
 
         list(self.collector.collect())
 
-        self.client.auth_log_out.assert_not_called()
+        self.client._post.assert_not_called()
 
     def test_create_client_with_api_key(self):
         self.mock_client.reset_mock()
