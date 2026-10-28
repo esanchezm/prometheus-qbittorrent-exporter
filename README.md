@@ -5,8 +5,8 @@
 | Name                                  |    Stmts |     Miss |   Cover |   Missing |
 |-------------------------------------- | -------: | -------: | ------: | --------: |
 | qbittorrent\_exporter/\_\_init\_\_.py |        0 |        0 |    100% |           |
-| qbittorrent\_exporter/exporter.py     |      157 |       41 |     74% |115, 294-298, 301, 304-308, 312-320, 325, 348-388, 392 |
-| **TOTAL**                             |  **157** |   **41** | **74%** |           |
+| qbittorrent\_exporter/exporter.py     |      173 |       23 |     87% |115, 369-409, 413 |
+| **TOTAL**                             |  **173** |   **23** | **87%** |           |
 
 
 ## Setup coverage badge
