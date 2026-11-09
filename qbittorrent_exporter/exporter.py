@@ -95,6 +95,8 @@ class QbittorrentMetricsCollector:
             yield from self._get_qbittorrent_by_torrent_metric_gauges(client)
 
             yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
+
+            yield from self._get_qbittorrent_preferences_metric_gauges(client)
         finally:
             # Release the WebUI session before discarding this scrape's client.
             # Bearer-token authentication does not create a WebUI session.
@@ -137,6 +139,54 @@ class QbittorrentMetricsCollector:
             )
 
         return [torrent_size_gauge, torrent_downloaded_gauge]
+
+    def _get_qbittorrent_preferences_metric_gauges(
+        self, client: Client
+    ) -> list[GaugeMetricFamily]:
+        """
+        Returns the listening port and the configured speed limits, read from the
+        application preferences. Costs one more request, so it is opt-in.
+        """
+        if not self.config.get("export_preferences_metrics", False):
+            return []
+
+        try:
+            preferences = dict(client.app.preferences)
+        except Exception as e:
+            logger.error(f"Couldn't fetch preferences: {e}")
+            return []
+
+        prefix = self.config["metrics_prefix"]
+        listen_port_gauge = GaugeMetricFamily(
+            f"{prefix}_listen_port",
+            "Port qBittorrent listens on for incoming connections",
+            labels=["server"],
+        )
+        listen_port_gauge.add_metric(
+            value=preferences.get("listen_port", 0), labels=[self.server]
+        )
+
+        download_limit_gauge = GaugeMetricFamily(
+            f"{prefix}_download_limit",
+            "Configured download rate limit, in bytes per second (0 means unlimited)",
+            labels=["mode", "server"],
+        )
+        upload_limit_gauge = GaugeMetricFamily(
+            f"{prefix}_upload_limit",
+            "Configured upload rate limit, in bytes per second (0 means unlimited)",
+            labels=["mode", "server"],
+        )
+        for mode, key_prefix in (("global", ""), ("alternative", "alt_")):
+            download_limit_gauge.add_metric(
+                value=preferences.get(f"{key_prefix}dl_limit", 0),
+                labels=[mode, self.server],
+            )
+            upload_limit_gauge.add_metric(
+                value=preferences.get(f"{key_prefix}up_limit", 0),
+                labels=[mode, self.server],
+            )
+
+        return [listen_port_gauge, download_limit_gauge, upload_limit_gauge]
 
     def _get_qbittorrent_status_metrics(self, client: Client) -> list[Metric]:
         """
@@ -357,6 +407,9 @@ def get_config() -> dict:
         "metrics_prefix": _get_config_value("METRICS_PREFIX", "qbittorrent"),
         "export_metrics_by_torrent": _parse_bool(
             _get_config_value("EXPORT_METRICS_BY_TORRENT", "False")
+        ),
+        "export_preferences_metrics": _parse_bool(
+            _get_config_value("EXPORT_PREFERENCES_METRICS", "False")
         ),
         "verify_webui_certificate": _parse_bool(
             _get_config_value("VERIFY_WEBUI_CERTIFICATE", "True")
