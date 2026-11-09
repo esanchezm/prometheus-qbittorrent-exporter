@@ -53,6 +53,7 @@ The application reads configuration using environment variables:
 | `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 | `METRICS_PREFIX`           | `qbittorrent` | Prefix to add to all the metrics |
 | `VERIFY_WEBUI_CERTIFICATE` | `True`        | Whether to verify SSL certificate when connecting to the qbittorrent server. Case-insensitive; `true`/`1`/`yes` enable verification, anything else disables it |
+| `EXPORT_PREFERENCES_METRICS` | `False`       | Also export the listening port and the configured speed limits, read from the application preferences with one more request per scrape |
 
 
 ## Metrics
@@ -72,6 +73,9 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 | `qbittorrent_alltime_dl_total`                                  | counter  | Total historical data downloaded, in bytes. |
 | `qbittorrent_alltime_ul_total`                                  | counter  | Total historical data uploaded, in bytes. |
 | `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|
+| `qbittorrent_listen_port`                                       | gauge    | Port qBittorrent listens on for incoming connections. Only with `EXPORT_PREFERENCES_METRICS`. |
+| `qbittorrent_download_limit`                                    | gauge    | Configured download rate limit, in bytes per second (0 means unlimited), for each `mode` (`global`, `alternative`). Only with `EXPORT_PREFERENCES_METRICS`. |
+| `qbittorrent_upload_limit`                                      | gauge    | Configured upload rate limit, in bytes per second (0 means unlimited), for each `mode` (`global`, `alternative`). Only with `EXPORT_PREFERENCES_METRICS`. |
 
 ## Screenshot
 

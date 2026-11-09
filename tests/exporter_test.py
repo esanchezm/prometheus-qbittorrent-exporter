@@ -565,6 +565,68 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         metrics = self.collector._get_qbittorrent_status_metrics(self.client)
         self.assertEqual(metrics, expected_metrics)
 
+    def test_preferences_metrics_disabled_by_default(self):
+        metrics = list(self.collector.collect())
+
+        self.assertNotIn("qbittorrent_listen_port", [m.name for m in metrics])
+        self.assertEqual(
+            self.collector._get_qbittorrent_preferences_metric_gauges(self.client), []
+        )
+
+    def test_preferences_metrics(self):
+        self.collector.config["export_preferences_metrics"] = True
+        self.client.app.preferences = {
+            "listen_port": 54321,
+            "dl_limit": 1048576,
+            "up_limit": 524288,
+            "alt_dl_limit": 262144,
+            "alt_up_limit": 131072,
+        }
+
+        metrics = {
+            metric.name: metric
+            for metric in self.collector._get_qbittorrent_preferences_metric_gauges(
+                self.client
+            )
+        }
+
+        server = "localhost:8080/qbt/"
+        self.assertEqual(
+            [(s.labels, s.value) for s in metrics["qbittorrent_listen_port"].samples],
+            [({"server": server}, 54321)],
+        )
+        self.assertEqual(
+            [
+                (s.labels, s.value)
+                for s in metrics["qbittorrent_download_limit"].samples
+            ],
+            [
+                ({"mode": "global", "server": server}, 1048576),
+                ({"mode": "alternative", "server": server}, 262144),
+            ],
+        )
+        self.assertEqual(
+            [(s.labels, s.value) for s in metrics["qbittorrent_upload_limit"].samples],
+            [
+                ({"mode": "global", "server": server}, 524288),
+                ({"mode": "alternative", "server": server}, 131072),
+            ],
+        )
+
+    def test_preferences_metrics_exception(self):
+        self.collector.config["export_preferences_metrics"] = True
+        type(self.client.app).preferences = PropertyMock(
+            side_effect=Exception("Error fetching preferences")
+        )
+
+        with self.assertLogs(level="ERROR") as logs:
+            result = self.collector._get_qbittorrent_preferences_metric_gauges(
+                self.client
+            )
+
+        self.assertEqual(result, [])
+        self.assertIn("Couldn't fetch preferences", logs.output[0])
+
     def test_server_string_with_different_settings(self):
         self.assertEqual(self.collector.server, "localhost:8080/qbt/")
         self.assertEqual(self.collector.connection_string, "http://localhost:8080/qbt/")
@@ -653,6 +715,7 @@ class TestConfig(unittest.TestCase):
         config = get_config()
         self.assertFalse(config["ssl"])
         self.assertFalse(config["export_metrics_by_torrent"])
+        self.assertFalse(config["export_preferences_metrics"])
         self.assertTrue(config["verify_webui_certificate"])
 
     @patch.dict(os.environ, {"VERIFY_WEBUI_CERTIFICATE": "true"}, clear=True)
