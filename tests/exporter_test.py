@@ -560,10 +560,68 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
+            Metric(
+                name="qbittorrent_free_space_on_disk",
+                value=0,
+                labels={"server": "localhost:8080/qbt/"},
+                help_text=(
+                    "Free space on the disk holding the default save path, in bytes."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_active_download_limit",
+                value=0,
+                labels={"server": "localhost:8080/qbt/"},
+                help_text=(
+                    "Download rate limit in effect, in bytes per second (0 means"
+                    " unlimited)."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_active_upload_limit",
+                value=0,
+                labels={"server": "localhost:8080/qbt/"},
+                help_text=(
+                    "Upload rate limit in effect, in bytes per second (0 means"
+                    " unlimited)."
+                ),
+            ),
+            Metric(
+                name="qbittorrent_speed_limits_mode",
+                value=0,
+                labels={"server": "localhost:8080/qbt/"},
+                help_text=(
+                    "Whether the alternative speed limits are active (1) or the"
+                    " global ones (0)."
+                ),
+            ),
         ]
 
         metrics = self.collector._get_qbittorrent_status_metrics(self.client)
         self.assertEqual(metrics, expected_metrics)
+
+    def test_get_qbittorrent_server_state_metrics(self):
+        self.client.sync_maindata.return_value = {
+            "server_state": {
+                "connection_status": "connected",
+                "free_space_on_disk": 123456789,
+                "dl_rate_limit": 1048576,
+                "up_rate_limit": 524288,
+                "use_alt_speed_limits": True,
+            }
+        }
+        self.client.app.version = "5.2.4"
+
+        metrics = {
+            metric.name: metric.samples[0].value
+            for metric in self.collector.collect()
+            if metric.samples
+        }
+
+        self.assertEqual(metrics["qbittorrent_free_space_on_disk"], 123456789)
+        self.assertEqual(metrics["qbittorrent_active_download_limit"], 1048576)
+        self.assertEqual(metrics["qbittorrent_active_upload_limit"], 524288)
+        self.assertEqual(metrics["qbittorrent_speed_limits_mode"], 1)
 
     def test_server_string_with_different_settings(self):
         self.assertEqual(self.collector.server, "localhost:8080/qbt/")

@@ -71,6 +71,10 @@ These are the metrics this program exports, assuming the `METRICS_PREFIX` is `qb
 | `qbittorrent_up_info_data_total`                                | counter  | Data uploaded since the server started, in bytes. |
 | `qbittorrent_alltime_dl_total`                                  | counter  | Total historical data downloaded, in bytes. |
 | `qbittorrent_alltime_ul_total`                                  | counter  | Total historical data uploaded, in bytes. |
+| `qbittorrent_free_space_on_disk`                                | gauge    | Free space on the disk holding the default save path, in bytes. |
+| `qbittorrent_active_download_limit`                             | gauge    | Download rate limit in effect, in bytes per second (0 means unlimited). |
+| `qbittorrent_active_upload_limit`                               | gauge    | Upload rate limit in effect, in bytes per second (0 means unlimited). |
+| `qbittorrent_speed_limits_mode`                                 | gauge    | Whether the alternative speed limits are active (1) or the global ones (0). |
 | `qbittorrent_torrents_count`                                    | gauge    | Number of torrents for each `category` and `status`. Example: `qbittorrent_torrents_count{category="movies",status="downloading"}`|
 
 ## Screenshot
