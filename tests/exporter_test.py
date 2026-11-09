@@ -9,6 +9,7 @@ from requests import Response
 from requests.exceptions import Timeout
 
 from qbittorrent_exporter.exporter import (
+    DEFAULT_QBITTORRENT_TIMEOUT,
     Metric,
     MetricType,
     QbittorrentMetricsCollector,
@@ -52,6 +53,12 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.collector = QbittorrentMetricsCollector(self.config)
         # Create a client for tests that call metric helpers directly.
         self.client = self.collector._create_client()
+        self.client.sync_maindata.return_value = {
+            "server_state": {"connection_status": "connected"},
+            "categories": {},
+            "torrents": {},
+        }
+        self.client.app.version = "5.2.2"
 
     def tearDown(self):
         self.patcher.stop()
@@ -71,6 +78,18 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             username=self.config["username"],
             password=self.config["password"],
             VERIFY_WEBUI_CERTIFICATE=self.config["verify_webui_certificate"],
+            FORCE_SCHEME_FROM_HOST=True,
+            REQUESTS_ARGS={"timeout": DEFAULT_QBITTORRENT_TIMEOUT},
+        )
+
+    def test_create_client_with_timeout(self):
+        self.mock_client.reset_mock()
+        self.collector.config["timeout"] = 2.5
+
+        self.collector._create_client()
+
+        self.assertEqual(
+            self.mock_client.call_args.kwargs["REQUESTS_ARGS"], {"timeout": 2.5}
         )
 
     @staticmethod
@@ -91,11 +110,15 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         return response
 
     def test_cleanup_timeout_does_not_shorten_metric_requests(self):
+        self.collector.config["timeout"] = 12.5
         self.mock_client.side_effect = Client
 
-        with patch(
-            "requests.sessions.Session.request", side_effect=self._api_response
-        ) as request:
+        with (
+            patch.object(Client, "_SID", new_callable=PropertyMock, return_value="sid"),
+            patch(
+                "requests.sessions.Session.request", side_effect=self._api_response
+            ) as request,
+        ):
             metrics = list(self.collector.collect())
 
         self.assertTrue(metrics[0].samples[0].value)
@@ -111,11 +134,11 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertTrue(
             any(c.args[1].endswith("/sync/maindata") for c in metric_requests)
         )
-        self.assertTrue(
+        self.assertFalse(
             any(c.args[1].endswith("/torrents/info") for c in metric_requests)
         )
         for call in metric_requests:
-            self.assertEqual(call.kwargs["timeout"], 15.1)
+            self.assertEqual(call.kwargs["timeout"], 12.5)
 
     def test_logout_is_sent_after_exhausted_preflight_timeouts(self):
         self.mock_client.side_effect = Client
@@ -128,9 +151,12 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 raise Timeout("Session check timed out")
             return self._api_response(method, url, **kwargs)
 
-        with patch(
-            "requests.sessions.Session.request", side_effect=self._api_response
-        ) as request:
+        with (
+            patch.object(Client, "_SID", new_callable=PropertyMock, return_value="sid"),
+            patch(
+                "requests.sessions.Session.request", side_effect=self._api_response
+            ) as request,
+        ):
             scrape = self.collector.collect()
             try:
                 # Fetch every metric, leaving the generator suspended before cleanup.
@@ -142,7 +168,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 self.assertTrue(metrics[0].samples[0].value)
                 self.assertTrue(
                     any(
-                        c.args[1].endswith("/torrents/info")
+                        c.args[1].endswith("/sync/maindata")
                         for c in request.call_args_list
                     )
                 )
@@ -193,19 +219,19 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.mock_client.side_effect = clients
         for index, client in enumerate(clients):
             client.sync_maindata.return_value = {
-                "server_state": {"connection_status": "connected"}
+                "server_state": {"connection_status": "connected"},
+                "categories": {},
+                "torrents": {
+                    f"hash{index}": {
+                        "name": f"Torrent {index}",
+                        "size": index + 1,
+                        "downloaded": index,
+                        "category": "",
+                        "state": TorrentStates.DOWNLOADING,
+                    }
+                },
             }
             client.app.version = f"5.2.{index}"
-            client.torrent_categories.categories = {}
-            client.torrents.info.return_value = [
-                {
-                    "name": f"Torrent {index}",
-                    "size": index + 1,
-                    "downloaded": index,
-                    "category": "",
-                    "state": TorrentStates.DOWNLOADING,
-                }
-            ]
 
         first = self.collector.collect()
         second = self.collector.collect()
@@ -226,7 +252,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 self.assertEqual(size.samples[0].labels["name"], f"Torrent {index}")
                 self.assertEqual(size.samples[0].value, index + 1)
                 clients[index].sync_maindata.assert_called_once_with()
-                self.assertEqual(clients[index].torrents.info.call_count, 2)
+                clients[index].torrents.info.assert_not_called()
                 clients[index]._post.assert_called_once_with(
                     _name="auth", _method="logout", requests_args={"timeout": 5}
                 )
@@ -244,6 +270,64 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.client._post.assert_called_once_with(
             _name="auth", _method="logout", requests_args={"timeout": 5}
         )
+
+    def test_collect_stops_after_server_does_not_answer(self):
+        self.client.sync_maindata.side_effect = Exception("Read timed out")
+
+        with self.assertLogs(level="ERROR"):
+            metrics = list(self.collector.collect())
+
+        self.assertNotIn(
+            "qbittorrent_torrents_count", [metric.name for metric in metrics]
+        )
+        self.assertNotIn(
+            "qbittorrent_torrent_size", [metric.name for metric in metrics]
+        )
+        self.client.torrents.info.assert_not_called()
+        self.assertEqual(
+            next(m for m in metrics if m.name == "qbittorrent_up")
+            .samples[0]
+            .labels["version"],
+            "",
+        )
+
+    def test_collect_reads_torrents_and_categories_from_maindata(self):
+        self.client.sync_maindata.return_value = {
+            "server_state": {"connection_status": "connected"},
+            "categories": {"Movies": {"name": "Movies", "savePath": ""}},
+            "torrents": {
+                "hash1": {
+                    "name": "Torrent 1",
+                    "size": 100,
+                    "downloaded": 50,
+                    "category": "Movies",
+                    "state": TorrentStates.DOWNLOADING.value,
+                },
+                "hash2": {
+                    "name": "Torrent 2",
+                    "size": 200,
+                    "downloaded": 200,
+                    "category": "",
+                    "state": TorrentStates.UPLOADING.value,
+                },
+            },
+        }
+
+        metrics = {metric.name: metric for metric in self.collector.collect()}
+
+        counts = {
+            (sample.labels["category"], sample.labels["status"]): sample.value
+            for sample in metrics["qbittorrent_torrents_count"].samples
+        }
+        self.assertEqual(counts[("Movies", TorrentStates.DOWNLOADING.value)], 1)
+        self.assertEqual(counts[("Uncategorized", TorrentStates.UPLOADING.value)], 1)
+        self.assertEqual(sum(counts.values()), 2)
+        self.assertEqual(
+            [sample.value for sample in metrics["qbittorrent_torrent_size"].samples],
+            [100, 200],
+        )
+        self.client.sync_maindata.assert_called_once_with()
+        self.client.torrents.info.assert_not_called()
 
     def test_collect_releases_session_on_unexpected_error(self):
         with (
@@ -282,6 +366,15 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             "Couldn't log out of qBittorrent: Logout timed out", logs.output[0]
         )
 
+    def test_collect_without_session_does_not_log_out(self):
+        self.client._SID = None
+        self.client.sync_maindata.side_effect = Exception("Read timed out")
+
+        with self.assertLogs(level="ERROR"):
+            list(self.collector.collect())
+
+        self.client._post.assert_not_called()
+
     def test_collect_with_api_key_does_not_log_out(self):
         self.config["api_key"] = "qbt_abcdefghijklmnopqrstuvwxyz12"
 
@@ -306,8 +399,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertNotIn("password", kwargs)
 
     def test_collect_by_torrent_metric_gauges(self):
-        # Mock the return value of self.client.torrents.info()
-        self.client.torrents.info.return_value = [
+        torrents = [
             {
                 "name": "Torrent 1",
                 "size": 100,
@@ -327,14 +419,8 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
                 "downloaded": 300,
             },
         ]
-        # Mock the client.torrent_categories.categories attribute
-        self.client.torrent_categories.categories = {
-            "category1": {"name": "Category 1"},
-            "category2": {"name": "Category 2"},
-            "category3": {"name": "Category 3"},
-        }
 
-        result = self.collector._get_qbittorrent_by_torrent_metric_gauges(self.client)
+        result = self.collector._get_qbittorrent_by_torrent_metric_gauges(torrents)
 
         torrent_size_metric = result[0]
         self.assertIsInstance(torrent_size_metric, GaugeMetricFamily)
@@ -369,7 +455,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(torrent_downloaded_metric.samples[0].value, 100)
 
     def test_collect_torrent_tags_metric_gauge(self):
-        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge(self.client)
+        result = self.collector._get_qbittorrent_torrent_tags_metrics_gauge({}, [])
 
         self.assertIsInstance(result, GaugeMetricFamily)
         self.assertEqual(result.name, "qbittorrent_torrents_count")
@@ -388,53 +474,44 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         metrics = list(self.collector.collect())
         self.assertNotEqual(len(metrics), 0)
 
-    def test_fetch_categories(self):
-        # Mock the client.torrent_categories.categories attribute
-        self.client.torrent_categories.categories = {
-            "category1": {"name": "Category 1"},
-            "category2": {"name": "Category 2"},
-            "category3": {"name": "Category 3"},
+    def test_get_categories(self):
+        maindata = {
+            "categories": {
+                "category1": {"name": "Category 1"},
+                "category2": {"name": "Category 2"},
+            }
         }
 
-        categories = self.collector._fetch_categories(self.client)
-        self.assertIsInstance(categories, dict)
-        self.assertNotEqual(len(categories), 0)
-        self.assertEqual(categories["category1"]["name"], "Category 1")
-        self.assertEqual(categories["category2"]["name"], "Category 2")
-        self.assertEqual(categories["category3"]["name"], "Category 3")
+        categories = self.collector._get_categories(maindata)
 
-    def test_fetch_categories_exception(self):
-        type(self.client.torrent_categories).categories = PropertyMock(
-            side_effect=Exception("Error fetching categories")
+        self.assertEqual(
+            categories,
+            {
+                "category1": {"name": "Category 1"},
+                "category2": {"name": "Category 2"},
+            },
         )
-        categories = self.collector._fetch_categories(self.client)
-        self.assertEqual(categories, {})
 
-    def test_fetch_torrents_success(self):
-        # Mock the return value of self.client.torrents.info()
-        self.client.torrents.info.return_value = [
-            {"name": "Torrent 1", "size": 100},
-            {"name": "Torrent 2", "size": 200},
-            {"name": "Torrent 3", "size": 300},
-        ]
+    def test_get_categories_missing(self):
+        self.assertEqual(self.collector._get_categories({}), {})
 
-        expected_result = [
-            {"name": "Torrent 1", "size": 100},
-            {"name": "Torrent 2", "size": 200},
-            {"name": "Torrent 3", "size": 300},
-        ]
+    def test_get_torrents(self):
+        maindata = {
+            "torrents": {
+                "hash1": {"name": "Torrent 1", "size": 100},
+                "hash2": {"name": "Torrent 2", "size": 200},
+            }
+        }
 
-        result = self.collector._fetch_torrents(self.client)
-        self.assertEqual(result, expected_result)
+        result = self.collector._get_torrents(maindata)
 
-    def test_fetch_torrents_exception(self):
-        # Mock an exception being raised by self.client.torrents.info()
-        self.client.torrents.info.side_effect = Exception("Connection error")
+        self.assertEqual(
+            result,
+            [{"name": "Torrent 1", "size": 100}, {"name": "Torrent 2", "size": 200}],
+        )
 
-        expected_result = []
-
-        result = self.collector._fetch_torrents(self.client)
-        self.assertEqual(result, expected_result)
+    def test_get_torrents_missing(self):
+        self.assertEqual(self.collector._get_torrents({}), [])
 
     def test_filter_torrents_by_state(self):
         expected = [
@@ -487,10 +564,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_get_qbittorrent_status_metrics(self):
-        self.client.sync_maindata.return_value = {
-            "server_state": {"connection_status": "connected"}
-        }
-        self.client.app.version = "1.2.3"
+        maindata = {"server_state": {"connection_status": "connected"}}
 
         expected_metrics = [
             Metric(
@@ -562,7 +636,7 @@ class TestQbittorrentMetricsCollector(unittest.TestCase):
             ),
         ]
 
-        metrics = self.collector._get_qbittorrent_status_metrics(self.client)
+        metrics = self.collector._get_qbittorrent_status_metrics(maindata, "1.2.3")
         self.assertEqual(metrics, expected_metrics)
 
     def test_server_string_with_different_settings(self):
@@ -658,6 +732,23 @@ class TestConfig(unittest.TestCase):
     @patch.dict(os.environ, {"VERIFY_WEBUI_CERTIFICATE": "true"}, clear=True)
     def test_get_config_verify_certificate_lowercase(self):
         self.assertTrue(get_config()["verify_webui_certificate"])
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_config_timeout_default(self):
+        self.assertEqual(get_config()["timeout"], DEFAULT_QBITTORRENT_TIMEOUT)
+
+    @patch.dict(os.environ, {"QBITTORRENT_TIMEOUT": "2.5"}, clear=True)
+    def test_get_config_timeout(self):
+        self.assertEqual(get_config()["timeout"], 2.5)
+
+    def test_get_config_invalid_timeout(self):
+        for timeout in ("abc", "0", "-1", "nan"):
+            with (
+                self.subTest(timeout=timeout),
+                patch.dict(os.environ, {"QBITTORRENT_TIMEOUT": timeout}, clear=True),
+                self.assertRaises(SystemExit),
+            ):
+                get_config()
 
     @patch.dict(os.environ, {"EXPORTER_PORT": "abc"}, clear=True)
     def test_get_config_invalid_exporter_port(self):

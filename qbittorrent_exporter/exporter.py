@@ -18,6 +18,13 @@ from qbittorrentapi import Client, TorrentStates
 faulthandler.enable()
 logger = logging.getLogger()
 
+# Seconds to wait for qBittorrent to connect and to send each response, used
+# for every metric request. qbittorrent-api tries a failed request twice, so a
+# scrape against an unresponsive server ends after about twice this value,
+# inside Prometheus' default scrape timeout (10 s), instead of running on in
+# the background.
+DEFAULT_QBITTORRENT_TIMEOUT = 4.0
+
 
 class MetricType(StrEnum):
     """
@@ -57,6 +64,14 @@ class QbittorrentMetricsCollector:
         client_args: dict[str, Any] = {
             "host": self.connection_string,
             "VERIFY_WEBUI_CERTIFICATE": self.config["verify_webui_certificate"],
+            # The scheme comes from QBITTORRENT_SSL (or port 443). Without this,
+            # qbittorrent-api probes HTTPS and HTTP again whenever a request
+            # fails, which multiplies the time a scrape waits for a server that
+            # does not answer, and can silently fall back to plain HTTP.
+            "FORCE_SCHEME_FROM_HOST": True,
+            "REQUESTS_ARGS": {
+                "timeout": self.config.get("timeout", DEFAULT_QBITTORRENT_TIMEOUT)
+            },
         }
 
         # qBittorrent 5.2+ supports API key auth via bearer tokens
@@ -78,7 +93,8 @@ class QbittorrentMetricsCollector:
         """
         client = self._create_client()
         try:
-            for metric in self._get_qbittorrent_status_metrics(client):
+            maindata, version = self._fetch_maindata(client)
+            for metric in self._get_qbittorrent_status_metrics(maindata, version):
                 if metric.metric_type == MetricType.COUNTER:
                     prom_metric = CounterMetricFamily(
                         metric.name, metric.help_text, labels=list(metric.labels.keys())
@@ -92,13 +108,23 @@ class QbittorrentMetricsCollector:
                 )
                 yield prom_metric
 
-            yield from self._get_qbittorrent_by_torrent_metric_gauges(client)
+            # The server did not answer: skip the torrent metrics instead of
+            # making more requests that would wait for it too.
+            if not maindata.get("server_state"):
+                return
 
-            yield self._get_qbittorrent_torrent_tags_metrics_gauge(client)
+            torrents = self._get_torrents(maindata)
+            yield from self._get_qbittorrent_by_torrent_metric_gauges(torrents)
+
+            yield self._get_qbittorrent_torrent_tags_metrics_gauge(
+                self._get_categories(maindata), torrents
+            )
         finally:
             # Release the WebUI session before discarding this scrape's client.
-            # Bearer-token authentication does not create a WebUI session.
-            if not self.config.get("api_key"):
+            # Bearer-token authentication does not create a WebUI session, and
+            # a client that never logged in (the server did not answer) has
+            # none to release.
+            if not self.config.get("api_key") and client._SID:
                 try:
                     # Bypass auth_log_out's preflight: a failed session check
                     # must not prevent sending logout for this scrape's session.
@@ -109,7 +135,7 @@ class QbittorrentMetricsCollector:
                     logger.error(f"Couldn't log out of qBittorrent: {e}")
 
     def _get_qbittorrent_by_torrent_metric_gauges(
-        self, client: Client
+        self, torrents: list[dict]
     ) -> list[GaugeMetricFamily]:
         if not self.config.get("export_metrics_by_torrent", False):
             return []
@@ -126,7 +152,7 @@ class QbittorrentMetricsCollector:
             labels=["name", "category", "server"],
         )
 
-        for torrent in self._fetch_torrents(client):
+        for torrent in torrents:
             torrent_size_gauge.add_metric(
                 value=torrent["size"],
                 labels=[torrent["name"], torrent["category"], self.server],
@@ -138,21 +164,26 @@ class QbittorrentMetricsCollector:
 
         return [torrent_size_gauge, torrent_downloaded_gauge]
 
-    def _get_qbittorrent_status_metrics(self, client: Client) -> list[Metric]:
+    def _fetch_maindata(self, client: Client) -> tuple[dict[str, Any], str]:
         """
-        Returns metrics about the state of the qbittorrent server.
+        Fetches the server state, categories and torrents in one request, plus
+        the server version. Returns an empty dict when the server does not answer.
         """
-        maindata: dict[str, Any] = {}
-        version: str = ""
-
-        # Fetch data from API
         try:
-            maindata = client.sync_maindata()
+            maindata = dict(client.sync_maindata())
             version = client.app.version
         except Exception as e:
             logger.error(f"Couldn't get server info: {e}")
+            return {}, ""
+        return maindata, version
 
-        server_state = maindata.get("server_state", {})
+    def _get_qbittorrent_status_metrics(
+        self, maindata: dict[str, Any], version: str
+    ) -> list[Metric]:
+        """
+        Returns metrics about the state of the qbittorrent server.
+        """
+        server_state = maindata.get("server_state") or {}
 
         return [
             Metric(
@@ -224,24 +255,15 @@ class QbittorrentMetricsCollector:
             ),
         ]
 
-    def _fetch_categories(self, client: Client) -> dict:
-        """Fetches all categories in use from qbittorrent."""
-        try:
-            categories = dict(client.torrent_categories.categories)
-            for key, value in categories.items():
-                categories[key] = dict(value)  # type: ignore
-            return categories
-        except Exception as e:
-            logger.error(f"Couldn't fetch categories: {e}")
-            return {}
+    def _get_categories(self, maindata: dict[str, Any]) -> dict:
+        """Returns the categories from a sync/maindata response."""
+        categories = maindata.get("categories") or {}
+        return {key: dict(value) for key, value in categories.items()}
 
-    def _fetch_torrents(self, client: Client) -> list[dict]:
-        """Fetches torrents from qbittorrent"""
-        try:
-            return [dict(_attr_dict) for _attr_dict in client.torrents.info()]
-        except Exception as e:
-            logger.error(f"Couldn't fetch torrents: {e}")
-            return []
+    def _get_torrents(self, maindata: dict[str, Any]) -> list[dict]:
+        """Returns the torrents from a sync/maindata response."""
+        torrents = maindata.get("torrents") or {}
+        return [dict(torrent) for torrent in torrents.values()]
 
     def _filter_torrents_by_category(
         self, category: str, torrents: list[dict]
@@ -261,11 +283,9 @@ class QbittorrentMetricsCollector:
         return [torrent for torrent in torrents if torrent["state"] == state.value]
 
     def _get_qbittorrent_torrent_tags_metrics_gauge(
-        self, client: Client
+        self, categories: dict, torrents: list[dict]
     ) -> GaugeMetricFamily:
-        categories = self._fetch_categories(client)
-        torrents = self._fetch_torrents(client)
-
+        categories = {**categories}
         categories["Uncategorized"] = {"name": "Uncategorized", "savePath": ""}
 
         torrents_count_gauge = GaugeMetricFamily(
@@ -343,6 +363,17 @@ def get_config() -> dict:
         logger.error("Invalid EXPORTER_PORT, must be between 1 and 65535")
         sys.exit(1)
 
+    try:
+        timeout = float(
+            _get_config_value("QBITTORRENT_TIMEOUT", str(DEFAULT_QBITTORRENT_TIMEOUT))
+        )
+    except ValueError:
+        logger.error("Invalid QBITTORRENT_TIMEOUT, must be a number of seconds")
+        sys.exit(1)
+    if not timeout > 0:
+        logger.error("Invalid QBITTORRENT_TIMEOUT, must be greater than 0")
+        sys.exit(1)
+
     return {
         "host": _get_config_value("QBITTORRENT_HOST", ""),
         "port": _get_config_value("QBITTORRENT_PORT", ""),
@@ -351,6 +382,7 @@ def get_config() -> dict:
         "username": _get_config_value("QBITTORRENT_USER", ""),
         "password": _get_config_value("QBITTORRENT_PASS", ""),
         "api_key": _get_config_value("QBITTORRENT_API_KEY", ""),
+        "timeout": timeout,
         "exporter_address": _get_config_value("EXPORTER_ADDRESS", "0.0.0.0"),
         "exporter_port": exporter_port,
         "log_level": _get_config_value("EXPORTER_LOG_LEVEL", "INFO"),

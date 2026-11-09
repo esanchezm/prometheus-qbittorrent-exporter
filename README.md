@@ -48,6 +48,7 @@ The application reads configuration using environment variables:
 | `QBITTORRENT_USER`         | `""`          | qbittorrent username |
 | `QBITTORRENT_PASS`         | `""`          | qbittorrent password |
 | `QBITTORRENT_API_KEY`      | `""`          | qBittorrent API key for qBittorrent >= 5.2. When set, it overrides `QBITTORRENT_USER`/`QBITTORRENT_PASS`. |
+| `QBITTORRENT_TIMEOUT`      | `4`           | Seconds to wait for qBittorrent to connect and to send each response. A failed request is tried twice, so keep twice this value below the Prometheus scrape timeout, so a scrape against an unresponsive server ends instead of running on in the background. When qBittorrent does not answer, the scrape reports `qbittorrent_up` as `0` and skips the torrent metrics |
 | `EXPORTER_ADDRESS`         | `0.0.0.0`     | Exporter listening IP address |
 | `EXPORTER_PORT`            | `8000`        | Exporter listening port |
 | `EXPORTER_LOG_LEVEL`       | `INFO`        | Log level. One of: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
