@@ -222,6 +222,39 @@ class QbittorrentMetricsCollector:
                 help_text="Total historical data uploaded, in bytes.",
                 metric_type=MetricType.COUNTER,
             ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_free_space_on_disk",
+                value=server_state.get("free_space_on_disk", 0),
+                labels={"server": self.server},
+                help_text="Free space on the disk holding the default save path, in bytes.",
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_active_download_limit",
+                value=server_state.get("dl_rate_limit", 0),
+                labels={"server": self.server},
+                help_text=(
+                    "Download rate limit in effect, in bytes per second (0 means"
+                    " unlimited)."
+                ),
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_active_upload_limit",
+                value=server_state.get("up_rate_limit", 0),
+                labels={"server": self.server},
+                help_text=(
+                    "Upload rate limit in effect, in bytes per second (0 means"
+                    " unlimited)."
+                ),
+            ),
+            Metric(
+                name=f"{self.config['metrics_prefix']}_speed_limits_mode",
+                value=int(bool(server_state.get("use_alt_speed_limits", False))),
+                labels={"server": self.server},
+                help_text=(
+                    "Whether the alternative speed limits are active (1) or the"
+                    " global ones (0)."
+                ),
+            ),
         ]
 
     def _fetch_categories(self, client: Client) -> dict:
